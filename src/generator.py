@@ -105,14 +105,29 @@ class NutriGenerator:
         api_key = os.getenv("SILICONFLOW_API_KEY")
         if not api_key:
             raise ValueError("请设置 SILICONFLOW_API_KEY 环境变量")
-        self.llm = ChatOpenAI(
-            model=self.model_name,
-            temperature=self.temperature,
-            max_tokens=self.max_tokens,
-            api_key=api_key,
-            base_url=os.getenv("LLM_BASE_URL", "https://api.siliconflow.cn/v1"),
-        )
-        logger.info(f"LLM 初始化完成: {self.model_name}")
+        # 优先用 LLM_MODEL，其次 DeepSeek-V3（更快更稳），最后回退 Qwen2.5-7B
+        candidates = []
+        env_model = os.getenv("LLM_MODEL")
+        if env_model:
+            candidates.append(env_model)
+        candidates += ["deepseek-ai/DeepSeek-V3", "Qwen/Qwen2.5-7B-Instruct"]
+        last_err = None
+        for m in candidates:
+            try:
+                self.llm = ChatOpenAI(
+                    model=m,
+                    temperature=self.temperature,
+                    max_tokens=self.max_tokens,
+                    api_key=api_key,
+                    base_url=os.getenv("LLM_BASE_URL", "https://api.siliconflow.cn/v1"),
+                )
+                self.model_name = m
+                logger.info(f"LLM 初始化完成: {self.model_name}")
+                return
+            except Exception as e:
+                last_err = e
+                logger.warning(f"模型 {m} 初始化失败: {e}")
+        raise last_err
 
     @staticmethod
     def _make_input(context: str, history_text: str, profile_context: str):

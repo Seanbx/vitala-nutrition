@@ -175,8 +175,12 @@ class NutriRAGService:
         constraints = self.user_manager.extract_constraints_from_query(query)
 
         search_query = query
-        # 过短/口语化问题直接检索，跳过查询改写，减少一次 LLM 调用（更快）
-        if use_rewrite and self.generator and len(query.strip()) >= 6:
+        # 只有“模糊/口语化”问题才做 LLM 查询改写；可直接回答的明确问题直接检索，
+        # 省掉一次大模型调用（速度提升一倍）
+        import re as _re
+        ambiguous = _re.compile(r"这个|那个|它|怎么吃|吃什么|喝什么|适合|能不能|该不|想|推荐|有什么|做法|怎样|如何|叫啥|是啥|哪种")
+        if (use_rewrite and self.generator and len(query.strip()) >= 10
+                and (ambiguous.search(query) or len(query.strip()) >= 30)):
             try:
                 search_query = self.generator.query_rewrite(query, chat_history)
             except Exception:
@@ -227,6 +231,9 @@ class NutriRAGService:
                 answer = self.generator.generate_answer(
                     query, docs, chat_history, profile_context=summary
                 )
+                if self._looks_corrupted(answer):
+                    logger.warning("检测到生成结果异常，回退到检索回答")
+                    answer = self._build_fallback_answer(query, docs)
             except Exception as e:
                 logger.error(f"生成失败: {e}")
                 answer = self._build_fallback_answer(query, docs)
@@ -260,10 +267,17 @@ class NutriRAGService:
 
         if self.generator:
             try:
+                _buf = []
                 for chunk in self.generator.generate_answer_stream(
                     query, docs, chat_history, profile_context=summary
                 ):
+                    _buf.append(chunk)
                     yield chunk
+                if self._looks_corrupted("".join(_buf)):
+                    logger.warning("流式结果异常，回退到检索回答")
+                    answer = self._build_fallback_answer(query, docs)
+                    for piece in self._chunk_text(answer, size=12):
+                        yield piece
                 yield self._src_marker(docs)
                 return
             except Exception as e:
@@ -278,6 +292,22 @@ class NutriRAGService:
     def _chunk_text(text: str, size: int = 10):
         for i in range(0, len(text), size):
             yield text[i:i + size]
+
+    @staticmethod
+    def _looks_corrupted(text: str) -> bool:
+        """检测 LLM 输出是否退化/乱码（出现替换符，或中英文之间大量孤立 D 等）"""
+        if not text:
+            return False
+        if "\ufffd" in text:
+            return True
+        cjk = sum(1 for ch in text if "\u4e00" <= ch <= "\u9fff")
+        dcount = sum(1 for ch in text if ch == "D")
+        if cjk > 30 and dcount > cjk * 0.2:
+            return True
+        # 大量重复单字（模型陷入复读）
+        import re as _re
+        m = _re.search(r"([\u4e00-\u9fff])\1{4,}", text)
+        return bool(m)
 
     @staticmethod
     def _src_marker(docs: List[Document]) -> str:
