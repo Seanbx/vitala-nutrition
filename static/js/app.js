@@ -184,6 +184,7 @@ function md2html(src) {
     s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
     s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
     s = s.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+    s = s.replace(/\*+/g, "");
     s = s.replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
     return s;
   }
@@ -769,6 +770,10 @@ function renderHome() {
     + '<div class="card"><div class="card-title">' + t("home.meals") + '<span class="more" data-act="addmeal">+ ' + t("home.addMeal") + "</span></div>" + mealsHtml + "</div>"
     + '<div class="card"><div class="card-title">' + t("home.workouts") + '<span class="more" data-act="addworkout">+ ' + t("home.addWorkout") + "</span></div>" + wkHtml + "</div>"
     + "</div>"
+    + '<div class="grid section-gap" style="grid-template-columns:1.6fr 1fr">'
+    + '<div class="card"><div class="card-title">' + t("home.forYou") + "</div><div id='home-rec' class='mini-recs'></div></div>"
+    + '<div class="card"><div class="card-title">📚 ' + t("dis.tabKnowledge") + "</div><div id='home-know' class='chip-row mt-1'></div></div>"
+    + "</div>"
     + '<div class="section-gap"><div class="card-title" style="text-transform:none;font-size:14px;color:var(--text);letter-spacing:0">' + t("home.quickAsk") + "</div>"
     + '<div class="quickask-grid">'
     + ["chat.suggest1", "chat.suggest2", "chat.suggest3", "chat.suggest4"].map(k => '<button class="qa-btn" data-q="' + esc(t(k)) + '">' + t(k) + "</button>").join("")
@@ -785,7 +790,34 @@ function renderHome() {
     });
   });
   main.querySelectorAll("[data-q]").forEach(b => b.addEventListener("click", () => goChat(b.getAttribute("data-q"))));
+  fillHomeExtras();
   function mini(ico, v, l) { return '<div class="stat-mini"><div class="v">' + v + "</div><div class='l'>" + l + "</div></div>"; }
+}
+
+async function fillHomeExtras() {
+  if (!S.catalog) {
+    try { S.catalog = await api("/api/catalog"); } catch (e) { return; }
+  }
+  const rec = $("#home-rec");
+  const know = $("#home-know");
+  if (!rec && !know) return;
+  const goal = (S.profile && S.profile.dietary_preferences && S.profile.dietary_preferences.goal) || "maintain";
+  const cat = goal === "lose" ? "减脂餐" : goal === "gain" ? "增肌餐" : "维持餐";
+  let recipes = (S.catalog.recipes || []).filter(r => r.category === cat);
+  if (recipes.length < 4) recipes = (S.catalog.recipes || []).filter(r => r.category !== cat).concat(recipes);
+  const picked = recipes.slice(0, 4);
+  if (rec) {
+    rec.innerHTML = picked.map((r, i) => '<div class="mini-recipe" data-id="' + esc(r.id) + '">'
+      + recipeCover(r, i)
+      + '<div class="mr-body"><b>' + esc(r.name) + "</b><span>" + (r.calories || 0) + " kcal</span></div></div>").join("")
+      || '<div class="empty-note">' + t("dis.empty") + "</div>";
+    $$(".mini-recipe", rec).forEach(el => el.addEventListener("click", () => openRecipe(el.getAttribute("data-id"))));
+  }
+  if (know) {
+    const ks = (S.catalog.knowledge || []).slice(0, 5);
+    know.innerHTML = ks.map(k => '<span class="chip" data-id="' + esc(k.id) + '">📄 ' + esc(k.title) + "</span>").join("");
+    $$(".chip", know).forEach(el => el.addEventListener("click", () => openKnowledge(el.getAttribute("data-id"))));
+  }
 }
 function dailyTip() {
   const tips = [
@@ -969,7 +1001,7 @@ async function sendChat(text) {
   } catch (e) {
     removeTyping();
     try {
-      const d = await api("/api/chat", { method: "POST", body: { query: text, chat_history: chatHistory(), use_rewrite: true } });
+      const d = await api("/api/chat", { method: "POST", body: { query: text, chat_history: chatHistory(), use_rewrite: false } });
       const bot = { role: "bot", content: d.answer || "", sources: d.sources || [] };
       S.chat.push(bot);
       appendBubble(bot, true);
@@ -983,7 +1015,7 @@ async function sendChat(text) {
 async function streamChat(text) {
   const headers = { "Content-Type": "application/json" };
   if (S.token) headers["Authorization"] = "Bearer " + S.token;
-  const res = await fetch("/api/chat/stream", { method: "POST", headers, body: JSON.stringify({ query: text, chat_history: chatHistory(), use_rewrite: true }) });
+  const res = await fetch("/api/chat/stream", { method: "POST", headers, body: JSON.stringify({ query: text, chat_history: chatHistory(), use_rewrite: false }) });
   if (!res.ok) {
     const err = {};
     try { const j = await res.json(); err.detail = j.detail; } catch (x) { err.detail = res.statusText; }

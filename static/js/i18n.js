@@ -198,6 +198,7 @@ const I18N = {
     "home.incomplete": "你的档案还没填完，补全后建议会更准",
     "home.goChat": "去问问 AI",
     "home.viewAll": "查看全部",
+    "home.forYou": "为你推荐",
     "home.added": "已记录",
 
     "chat.title": "AI 营养助手",
@@ -498,6 +499,7 @@ const I18N = {
     "home.incomplete": "Your profile is incomplete — completing it improves advice",
     "home.goChat": "Ask AI",
     "home.viewAll": "View all",
+    "home.forYou": "For you",
     "home.added": "Logged",
 
     "chat.title": "AI Nutrition Assistant",

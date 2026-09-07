@@ -693,3 +693,59 @@ button:focus-visible, .chip:focus-visible, a:focus-visible { outline: 2px solid 
 /* 头像选择/emoji 统一圆角质感 */
 .avatar-preset { box-shadow: var(--shadow-sm); }
 .avatar-preset.active { box-shadow: 0 0 0 3px var(--brand-soft), 0 6px 14px -6px var(--brand); }
+/* =============================================================
+   v4 — Notion/Apple 干净极简 × 暖色生活方式（默认主题重调）
+   ============================================================= */
+html[data-theme="light"] {
+  --bg: #F5F1EA;
+  --bg-soft: #EDE7DC;
+  --surface: #FFFDF9;
+  --surface-2: #F2ECE2;
+  --surface-3: #E7DECD;
+  --text: #2A241D;
+  --text-2: #5F5547;
+  --muted: #998C7A;
+  --line: #E9E1D2;
+  --line-2: #D7CAB4;
+  --brand: #9A5F3F;
+  --brand-2: #C0845D;
+  --brand-ink: #FFFFFF;
+  --brand-soft: #F5E7DA;
+  --accent: #7E8F7A;
+  --accent-soft: #E8EDE3;
+  --warn: #B5813B;
+  --warn-soft: #F7ECD9;
+  --danger: #B96A5A;
+  --danger-soft: #F7E4DE;
+  --shadow-sm: 0 1px 2px rgba(74,60,40,.05), 0 1px 4px rgba(74,60,40,.04);
+  --shadow: 0 10px 28px -14px rgba(120,90,55,.22);
+  --shadow-lg: 0 28px 64px -20px rgba(120,90,55,.32);
+  --topbar-bg: rgba(250,246,239,.82);
+  --glass: rgba(255,253,249,.74);
+  --ring-track: #EDE4D5;
+  --gradient-brand: linear-gradient(135deg,#9A5F3F,#C98A60);
+  --gradient-soft: linear-gradient(135deg,#F6EEE1,#F1E8DF);
+  --auth-bg: linear-gradient(152deg,#F1E7D8 0%,#ECE1D4 55%,#EFE5DE 100%);
+  --auth-fg: #33291F;
+  --auth-glass: rgba(255,255,255,.58);
+  --auth-glass-border: rgba(120,90,55,.18);
+}
+
+/* 更“Notion”的层次：少装饰、多留白、细分割线 */
+.main { padding-top: 84px; }
+.hero-title { font-size: 26px; letter-spacing: -.4px; }
+.card-title { letter-spacing: .4px; }
+.cal-card { box-shadow: var(--shadow); }
+.topbar, .main, .page { transition: background .3s ease; }
+
+/* 首页迷你推荐 */
+.mini-recs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mini-recipe { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; cursor: pointer; background: var(--surface); transition: transform .16s ease, box-shadow .2s ease; }
+.mini-recipe:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.mini-recipe .rc { display: block; width: 100%; height: 74px; }
+.mini-recipe .mr-body { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 8px 10px; }
+.mini-recipe .mr-body b { font-size: 12.5px; }
+.mini-recipe .mr-body span { font-size: 11px; color: var(--muted); white-space: nowrap; }
+@media (max-width: 720px) {
+  .mini-recs { grid-template-columns: 1fr 1fr; }
+}

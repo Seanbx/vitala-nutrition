@@ -151,7 +151,7 @@ class ChatRequest(BaseModel):
     query: str = Field(..., description="用户问题")
     user_id: str = Field(default="default", description="用户ID（兼容旧版）")
     chat_history: Optional[List[dict]] = Field(default=None, description="历史对话")
-    use_rewrite: bool = Field(default=True, description="是否启用查询重写")
+    use_rewrite: bool = Field(default=False, description="是否启用查询重写（默认关闭以提速）")
 
 
 # --------------------------------------------------------------------------

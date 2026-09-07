@@ -231,8 +231,9 @@ class NutriRAGService:
                 answer = self.generator.generate_answer(
                     query, docs, chat_history, profile_context=summary
                 )
-                if self._looks_corrupted(answer):
-                    logger.warning("检测到生成结果异常，回退到检索回答")
+                prev_ans = self._prev_assistant(chat_history)
+                if self._looks_corrupted(answer) or self._is_echo(answer, prev_ans):
+                    logger.warning("检测到生成结果异常/复读，回退到检索回答")
                     answer = self._build_fallback_answer(query, docs)
             except Exception as e:
                 logger.error(f"生成失败: {e}")
@@ -273,8 +274,10 @@ class NutriRAGService:
                 ):
                     _buf.append(chunk)
                     yield chunk
-                if self._looks_corrupted("".join(_buf)):
-                    logger.warning("流式结果异常，回退到检索回答")
+                full_ans = "".join(_buf)
+                prev_ans = self._prev_assistant(chat_history)
+                if self._looks_corrupted(full_ans) or self._is_echo(full_ans, prev_ans):
+                    logger.warning("流式结果异常/复读，回退到检索回答")
                     answer = self._build_fallback_answer(query, docs)
                     for piece in self._chunk_text(answer, size=12):
                         yield piece
@@ -292,6 +295,27 @@ class NutriRAGService:
     def _chunk_text(text: str, size: int = 10):
         for i in range(0, len(text), size):
             yield text[i:i + size]
+
+    @staticmethod
+    def _prev_assistant(chat_history) -> str:
+        if not chat_history:
+            return ""
+        for m in reversed(chat_history):
+            if m and m.get("role") == "assistant" and m.get("content"):
+                return str(m.get("content"))
+        return ""
+
+    @staticmethod
+    def _is_echo(answer: str, prev: str) -> bool:
+        a = (answer or "").strip()
+        pv = (prev or "").strip()
+        if not a or not pv:
+            return False
+        if a == pv:
+            return True
+        if len(a) >= 60 and a.startswith(pv[:60]):
+            return True
+        return False
 
     @staticmethod
     def _looks_corrupted(text: str) -> bool:
