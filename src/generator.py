@@ -27,7 +27,8 @@ SYSTEM_PROMPT = """你是一位专业的智能营养师助手。请根据营养�
 7. 如果提供了用户画像，建议要贴合该用户的年龄、目标、过敏原与生活习惯；不要暴露你不知道的信息
 8. 只围绕「当前问题」回答：如果当前问题与历史对话无关，绝对不要复述或延续上一轮的回答，重新回答当前问题
 9. 不要输出 user、assistant、系统 等角色标记；不要输出成对之外的多余星号；加粗请使用成对的 **加粗**，项目符号用 - 或 1.
-10. 回答先给结论再展开，控制在 200-500 字，分点清晰"""
+10. 回答先给结论再展开，控制在 200-500 字，分点清晰
+11. 参考资料里可能混有与你无关的特定人群条目（孕妇、老人、儿童、肾病、痛风等）：只采用与当前问题/用户画像相关的内容，无关条目一律不要提及或罗列"""
 
 HUMAN_PROMPT = """历史对话：
 {chat_history}
@@ -123,6 +124,8 @@ class NutriGenerator:
                     max_tokens=self.max_tokens,
                     api_key=api_key,
                     base_url=os.getenv("LLM_BASE_URL", "https://api.siliconflow.cn/v1"),
+                    timeout=45,
+                    max_retries=1,
                 )
                 self.model_name = m
                 logger.info(f"LLM 初始化完成: {self.model_name}")

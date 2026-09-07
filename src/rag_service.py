@@ -224,6 +224,7 @@ class NutriRAGService:
 
         prof = profile or self.user_manager.get_profile(user_id)
         docs, rewritten = self._retrieve_docs(query, prof, chat_history, use_rewrite)
+        docs = self._prune_docs(query, docs)
         summary = self.build_profile_summary(prof)
 
         if self.generator:
@@ -264,6 +265,7 @@ class NutriRAGService:
 
         prof = profile or self.user_manager.get_profile(user_id)
         docs, _ = self._retrieve_docs(query, prof, chat_history, use_rewrite)
+        docs = self._prune_docs(query, docs)
         summary = self.build_profile_summary(prof)
 
         if self.generator:
@@ -382,26 +384,93 @@ class NutriRAGService:
     # 兜底回答
     # ------------------------------------------------------------------
 
+    @staticmethod
+    def _query_terms(query: str) -> List[str]:
+        import jieba
+        try:
+            toks = [w.strip() for w in jieba.lcut(query) if len(w.strip()) >= 2]
+        except Exception:
+            toks = []
+        return toks or [query]
+
+    @staticmethod
+    def _doc_relevance(query: str, doc: Document) -> int:
+        title = doc.metadata.get("title", "") or ""
+        text = doc.page_content[:200]
+        hay = title + " " + text
+        score = 0
+        if title and title in query:
+            score += 6
+        for term in NutriRAGService._query_terms(query):
+            if term in hay:
+                score += 1
+        # 特定人群条目：问题没提该人群时降权（避免把“孕妇/老人/肾病…”内容塞给普通用户）
+        groups = ["孕妇", "老年", "儿童", "肾病", "糖尿病", "高血压", "痛风", "高血脂", "哺乳"]
+        if any(g in title for g in groups) and not any(g in query for g in groups):
+            score -= 3
+        return score
+
+    @classmethod
+    def _prune_docs(cls, query: str, docs: List[Document]) -> List[Document]:
+        """过滤掉与问题完全无关的资料（如把孕妇条目从普通问题里去掉）"""
+        if not docs:
+            return docs
+        scored = [(cls._doc_relevance(query, d), i, d) for i, d in enumerate(docs)]
+        relevant = [d for s, i, d in scored if s >= 2]
+        if relevant:
+            return relevant[:5]
+        # 完全没有强相关时，保底给少量候选
+        return docs[:3]
+
+    @staticmethod
+    def _doc_snippet(content: str, limit: int = 120) -> str:
+        got = []
+        for ln in content.splitlines():
+            t = ln.strip()
+            if not t or t.startswith("#") or t.startswith("```"):
+                continue
+            if len(t) >= 6:
+                got.append(t)
+            if len(got) >= 2:
+                break
+        if not got and content:
+            got = [content.strip()[:80]]
+        s = "；".join(got)
+        return s if len(s) <= limit else s[:limit] + "…"
+
     def _build_fallback_answer(self, query: str, docs: List[Document]) -> str:
+        """大模型不可用时的离线兜底：只挑与问题相关的资料，绝不乱贴无关内容"""
         if not docs:
             return (
-                "抱歉，我在知识库里没有找到与「{q}」直接相关的资料。\n\n"
-                "你可以尝试：\n"
-                "- 换个说法，例如「减脂期早餐吃什么」\n"
-                "- 询问具体的营养问题，例如「每天需要多少蛋白质」\n"
-                "- 或者告诉我你的目标（减脂/增肌/保持健康）".format(q=query)
+                "抱歉，我在知识库里暂时没有找到和「{q}」直接相关的内容。\n\n"
+                "你可以换一种问法，例如：\n"
+                "- 减脂期早餐吃什么好？\n"
+                "- 我每天需要多少蛋白质？\n"
+                "- 清蒸鲈鱼怎么做？".format(q=query)
+            )
+        relevant = [(self._doc_relevance(query, d), i, d) for i, d in enumerate(docs)]
+        relevant.sort(key=lambda x: (-x[0], x[1]))
+        good = [d for s, i, d in relevant if s >= 2]
+        if not good:
+            return (
+                "知识库里暂时没有和你这个问题直接相关的内容，我没有硬套不相关的结果给你。\n\n"
+                "建议换个更具体的问法，比如带上菜名、食材或营养目标：\n"
+                "- 清蒸鲈鱼怎么做？\n"
+                "- 高蛋白的晚餐推荐\n"
+                "- 减脂期适合喝什么汤？"
             )
         lines = []
-        for i, doc in enumerate(docs[:4], 1):
-            title = doc.metadata.get("title", Path(doc.metadata.get("source", "")).stem)
-            text = doc.page_content.strip().replace("\n", " ")
-            if len(text) > 220:
-                text = text[:220] + "…"
-            lines.append(f"### {i}. {title}\n{text}")
+        for d in good[:3]:
+            meta = d.metadata
+            title = meta.get("title", "")
+            cat = meta.get("category", "")
+            label = title + (f"（{cat}）" if cat and cat not in title else "")
+            snippet = self._doc_snippet(d.page_content)
+            lines.append(f"**{label}**：{snippet}")
         return (
-            "已为你找到以下相关内容（当前为知识库检索模式）：\n\n"
+            "知识库中找到这些与你问题相关的内容（当前大模型暂不可用，先给你离线简答）：\n\n"
             + "\n\n".join(lines)
-            + "\n\n> 提示：配置 LLM API Key 后，我可以为你生成更完整的个性化回答。"
+            + "\n\n如果觉得不够，可以再问得具体一点（带菜名/食材/目标），或检查网络后重试完整回答。"
         )
 
     def _build_safety_response(self, safety_result: dict) -> str:
