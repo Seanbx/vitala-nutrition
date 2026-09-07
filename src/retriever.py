@@ -20,7 +20,7 @@ class NutriRetriever:
         self,
         vectorstore: Chroma,
         chunks: List[Document],
-        top_k: int = 5,
+        top_k: int = 10,
     ):
         self.vectorstore = vectorstore
         self.chunks = chunks

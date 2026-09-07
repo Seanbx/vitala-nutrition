@@ -749,3 +749,142 @@ html[data-theme="light"] {
 @media (max-width: 720px) {
   .mini-recs { grid-template-columns: 1fr 1fr; }
 }
+/* =============================================================
+   Phase 4 — AI思考动画 / 菜谱封面动效 / 搜索增强 / 页面转场
+   ============================================================= */
+
+/* AI 思考动画 */
+.thinking-indicator {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 16px; border-radius: 14px;
+  background: var(--brand-soft); color: var(--brand);
+  font-size: 13.5px; font-weight: 600;
+  animation: thinkPulse 1.5s ease-in-out infinite;
+}
+.thinking-indicator .dots { display: inline-flex; gap: 4px; }
+.thinking-indicator .dots span {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--brand); animation: thinkBounce 1.2s ease-in-out infinite;
+}
+.thinking-indicator .dots span:nth-child(2) { animation-delay: .15s; }
+.thinking-indicator .dots span:nth-child(3) { animation-delay: .3s; }
+@keyframes thinkPulse { 0%,100% { opacity: 1; } 50% { opacity: .7; } }
+@keyframes thinkBounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+/* 菜谱封面动画图标 */
+.recipe-thumb .food-icon {
+  position: absolute; z-index: 2;
+  font-size: 42px; filter: drop-shadow(0 2px 6px rgba(0,0,0,.12));
+  animation: foodFloat 4s ease-in-out infinite;
+}
+@keyframes foodFloat {
+  0%,100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-8px) rotate(3deg); }
+}
+.recipe-thumb .food-icon:nth-child(2) {
+  font-size: 24px; right: 18px; top: 14px; animation-delay: .8s; animation-duration: 3.5s;
+}
+.recipe-thumb .food-icon:nth-child(3) {
+  font-size: 18px; left: 18px; bottom: 12px; animation-delay: 1.4s; animation-duration: 5s;
+}
+
+/* 菜谱卡片悬停特效 */
+.recipe-card { position: relative; overflow: hidden; }
+.recipe-card::before {
+  content: ""; position: absolute; inset: 0; z-index: 0; opacity: 0;
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%),
+    color-mix(in srgb, var(--brand) 8%, transparent), transparent 60%);
+  transition: opacity .3s ease; pointer-events: none;
+}
+.recipe-card:hover::before { opacity: 1; }
+
+/* 页面转场动画 */
+.page-transition-enter { animation: pageSlideIn .35s cubic-bezier(.2,.9,.3,1); }
+.page-transition-exit { animation: pageSlideOut .2s ease forwards; }
+@keyframes pageSlideIn {
+  from { opacity: 0; transform: translateY(12px) scale(.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pageSlideOut {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(-8px) scale(.99); }
+}
+
+/* 搜索筛选面板 */
+.filter-panel {
+  display: none; gap: 10px; flex-wrap: wrap;
+  padding: 12px 0; margin-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+  animation: fadeUp .25s ease;
+}
+.filter-panel.open { display: flex; align-items: center; }
+.filter-panel label { font-size: 12px; font-weight: 700; color: var(--muted); }
+.filter-panel input[type="range"] {
+  width: 100px; accent-color: var(--brand);
+}
+.filter-panel .filter-group {
+  display: flex; align-items: center; gap: 6px;
+}
+.filter-panel .filter-val {
+  font-size: 12px; font-weight: 700; color: var(--brand); min-width: 32px;
+}
+
+/* 搜索历史 & 热门搜索 */
+.search-suggestions { margin-top: 8px; }
+.search-suggestions .ss-title {
+  font-size: 11.5px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .5px; color: var(--muted); margin-bottom: 6px;
+}
+.search-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.search-tag {
+  padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  background: var(--surface-2); color: var(--text-2); border: 1px solid var(--line);
+  cursor: pointer; transition: all .15s;
+}
+.search-tag:hover { background: var(--brand-soft); color: var(--brand); border-color: var(--brand); }
+.search-tag.hot { background: var(--warn-soft); color: var(--warn); border-color: var(--warn); }
+
+/* 菜谱卡片粒子效果 */
+.recipe-thumb .particle {
+  position: absolute; border-radius: 50%; pointer-events: none;
+  background: rgba(255,255,255,.3); animation: particleDrift 6s ease-in-out infinite;
+}
+@keyframes particleDrift {
+  0%,100% { transform: translate(0, 0) scale(1); opacity: .3; }
+  25% { transform: translate(10px, -15px) scale(1.2); opacity: .5; }
+  50% { transform: translate(-5px, -25px) scale(.8); opacity: .2; }
+  75% { transform: translate(15px, -10px) scale(1.1); opacity: .4; }
+}
+
+/* =============================================================
+   Phase 6 — 打卡日历 & 成就徽章
+   ============================================================= */
+.checkin-calendar { padding: 6px 0; }
+.cal-row { display: flex; gap: 4px; justify-content: space-between; }
+.cal-day {
+  flex: 1; text-align: center; padding: 6px 2px; border-radius: 10px;
+  transition: all .2s ease; cursor: default;
+}
+.cal-day.today { background: var(--brand-soft); }
+.cal-day.checked { background: color-mix(in srgb, var(--success) 12%, transparent); }
+.cal-day.checked .cal-dot { animation: checkPop .3s ease; }
+@keyframes checkPop { 0% { transform: scale(0); } 50% { transform: scale(1.4); } 100% { transform: scale(1); } }
+.cal-label { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--muted); letter-spacing: .5px; }
+.cal-dot { font-size: 16px; margin: 3px 0; min-height: 22px; display: flex; align-items: center; justify-content: center; }
+.cal-date { font-size: 12px; font-weight: 700; color: var(--text-2); }
+
+.badge-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.badge-item {
+  text-align: center; padding: 10px 4px; border-radius: 12px;
+  background: var(--surface-2); border: 1px solid var(--line);
+  transition: all .2s ease; opacity: .45; filter: grayscale(.8);
+}
+.badge-item.unlocked {
+  opacity: 1; filter: none;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--brand) 6%, var(--surface)), var(--surface));
+  border-color: color-mix(in srgb, var(--brand) 20%, var(--line));
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--brand) 10%, transparent);
+}
+.badge-item.unlocked:hover { transform: translateY(-2px); box-shadow: 0 4px 12px color-mix(in srgb, var(--brand) 18%, transparent); }
+.badge-icon { font-size: 24px; margin-bottom: 4px; }
+.badge-name { font-size: 10.5px; font-weight: 700; color: var(--text-2); line-height: 1.3; }

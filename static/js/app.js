@@ -855,6 +855,7 @@ function openMealModal() {
   const m = showModal('<h3>🍽️ ' + t("home.addMeal") + '</h3><p class="sub">' + t("home.todayLog") + "</p>"
     + '<div class="field"><label>' + t("f.mealFreq") + '</label><div class="seg" data-mealtype>' + ["breakfast", "lunch", "dinner", "snack"].map((k, i) => '<button type="button" value="' + k + '" class="' + (i === 0 ? "active" : "") + '">' + (i === 0 ? "🌅" : i === 1 ? "☀️" : i === 2 ? "🌙" : "🍪") + " " + mealTypeLabel(k) + "</button>").join("") + "</div></div>"
     + '<div class="field"><label>' + t("home.addMeal") + " - " + t("common.optional") + '</label><input class="input" id="m-name" placeholder="' + (getLang() === "zh" ? "例如：鸡胸肉沙拉" : "e.g. Grilled chicken salad") + '"></div>'
+    + '<div class="row mb-1"><button class="btn btn-soft btn-sm" id="m-ai-analyze" style="border-radius:10px">🤖 ' + (getLang() === "zh" ? "AI 智能分析" : "AI Analyze") + '</button><span id="m-ai-status" style="font-size:12px;color:var(--muted);align-self:center"></span></div>'
     + '<div class="grid grid-2" style="gap:10px">'
     + '<div class="field"><label>kcal</label><input class="input" id="m-cal" type="number" placeholder="300"></div>'
     + '<div class="field"><label>' + t("dis.protein") + ' (g)</label><input class="input" id="m-pro" type="number" placeholder="25"></div>'
@@ -864,6 +865,26 @@ function openMealModal() {
     + '<div class="row"><button class="btn btn-ghost grow" data-close>' + t("common.cancel") + '</button><button class="btn btn-primary grow" id="m-save">' + t("common.save") + "</button></div>");
   m.querySelectorAll("[data-mealtype] button").forEach(b => b.addEventListener("click", () => { m.querySelectorAll("[data-mealtype] button").forEach(x => x.classList.remove("active")); b.classList.add("active"); }));
   m.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+  const aiBtn = $("#m-ai-analyze", m);
+  if (aiBtn) aiBtn.addEventListener("click", async () => {
+    const desc = $("#m-name", m).value.trim();
+    if (!desc) { toast(getLang() === "zh" ? "请先输入食物名称" : "Enter food name first"); return; }
+    const status = $("#m-ai-status", m);
+    status.textContent = getLang() === "zh" ? "分析中..." : "Analyzing...";
+    aiBtn.disabled = true;
+    try {
+      const data = await api("/api/analyze-meal", { method: "POST", body: { description: desc } });
+      if (data.calories) $("#m-cal", m).value = Math.round(data.calories);
+      if (data.protein) $("#m-pro", m).value = Math.round(data.protein);
+      if (data.fat) $("#m-fat", m).value = Math.round(data.fat);
+      if (data.carbs) $("#m-carb", m).value = Math.round(data.carbs);
+      if (data.suggestion) status.textContent = "✅ " + data.suggestion;
+      else status.textContent = "✅ Done";
+    } catch (e) {
+      status.textContent = "❌ " + (e.detail || "Error");
+    }
+    aiBtn.disabled = false;
+  });
   $("#m-save").addEventListener("click", async () => {
     const type = $("[data-mealtype] button.active", m).value;
     const name = $("#m-name", m).value.trim() || mealTypeLabel(type);
@@ -1032,16 +1053,30 @@ async function streamChat(text) {
   const bbl = wrap.querySelector(".md-live");
   let buf = "";
   let plain = "";
+  let thinkingShown = false;
   for (;;) {
     const { done, value } = await reader.read();
     if (done) break;
     buf += dec.decode(value, { stream: true });
-    const idx = buf.indexOf(SRC_MARK);
-    plain = idx >= 0 ? buf.slice(0, idx) : buf;
+    if (!thinkingShown && buf.includes("\u{1F914}")) {
+      bbl.innerHTML = '<div class="thinking-indicator">\u{1F914} 正在思考中 <span class="dots"><span></span><span></span><span></span></span></div>';
+      thinkingShown = true;
+      continue;
+    }
+    if (thinkingShown) {
+      const cleanBuf = buf.replace(/\u{1F914} 正在思考中\s*\n*/g, "").trim();
+      if (cleanBuf.length > 0) {
+        bbl.className = "bbl md-live";
+        thinkingShown = false;
+      }
+    }
+    const cleanBuf = buf.replace(/\u{1F914} 正在思考中\s*\n*/g, "");
+    const idx = cleanBuf.indexOf(SRC_MARK);
+    plain = idx >= 0 ? cleanBuf.slice(0, idx) : cleanBuf;
     bbl.textContent = plain;
     scroll.scrollTop = scroll.scrollHeight;
   }
-  let answer = buf;
+  let answer = buf.replace(/\u{1F914} 正在思考中\s*\n*/g, "");
   let sources = [];
   const idx = buf.indexOf(SRC_MARK);
   if (idx >= 0) {
@@ -1061,7 +1096,7 @@ async function streamChat(text) {
 }
 
 /* ---------------- discover ---------------- */
-const S_DIS = { tab: "recipes", cat: "all", q: "" };
+const S_DIS = { tab: "recipes", cat: "all", q: "", calMin: 0, calMax: 2000, cookMax: 120 };
 
 function recipeCover(r, idx) {
   const pal = {
@@ -1071,6 +1106,26 @@ function recipeCover(r, idx) {
   }[r.category] || ["#93A7BE", "#E0E7EE", "#4E6A86"];
   const a = pal[0], b = pal[1], c1 = pal[2];
   const gid = "rg" + (Math.abs(idx) % 9000);
+  const foodIcons = {
+    "鸡": ["🍗","🥚"], "牛": ["🥩","🧅"], "猪": ["🥩","🫑"], "鱼": ["🐟","🍋"],
+    "虾": ["🦐","🧄"], "蟹": ["🦀","🫚"], "三文鱼": ["🍣","🥑"], "排骨": ["🍖","🧄"],
+    "豆腐": ["🧊","🥬"], "蛋": ["🥚","🍳"], "面": ["🍜","🧅"], "饭": ["🍚","🥕"],
+    "粥": ["🥣","🧅"], "沙拉": ["🥗","🫒"], "汤": ["🥣","🌿"], "汉堡": ["🍔","🥬"],
+    "意面": ["🍝","🫒"], "牛排": ["🥩","🥦"], "鸡胸": ["🍗","🥦"], "鸡腿": ["🍗","🧅"],
+    "咖啡": ["☕","🍫"], "酸奶": ["🥛","🫐"], "奶昔": ["🥤","🍌"], "吐司": ["🍞","🥑"],
+    "南瓜": ["🎃","🌿"], "西兰花": ["🥦","🧄"], "番茄": ["🍅","🧅"], "黄瓜": ["🥒","🌶️"],
+    "虾仁": ["🦐","🥦"], "金枪鱼": ["🐟","🥬"], "茄子": ["🍆","🌶️"], "蘑菇": ["🍄","🧄"],
+    "牛肉": ["🥩","🧅"], "蔬菜": ["🥬","🥕"], "水果": ["🍎","🫐"], "玉米": ["🌽","🥕"],
+    "魔芋": ["🧊","🌶️"], "芹菜": ["芹","🥜"], "白菜": ["🥬","🧊"], "紫菜": ["🌊","🥚"],
+    "蒸": ["♨️","🥘"], "炒": ["🍳","🌶️"], "烤": ["🔥","🥩"], "煮": ["♨️","🥣"],
+    "凉拌": ["🥗","🌶️"], "炖": ["🥘","🧅"], "煎": ["🍳","🧈"], "咖喱": ["🍛","🧅"]
+  };
+  let icons = ["🍽️"];
+  const name = r.name || "";
+  for (const [kw, arr] of Object.entries(foodIcons)) {
+    if (name.includes(kw)) { icons = arr; break; }
+  }
+  const p1s = 3 + (idx % 4), p2s = 4 + (idx % 3);
   return '<svg class="rc" viewBox="0 0 320 118" preserveAspectRatio="xMidYMid slice" aria-hidden="true">'
     + '<defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="1" y2="1">'
     + '<stop offset="0" stop-color="' + a + '"/><stop offset="1" stop-color="' + b + '"/></linearGradient></defs>'
@@ -1079,13 +1134,22 @@ function recipeCover(r, idx) {
     + '<circle cx="30" cy="112" r="40" fill="rgba(255,255,255,.12)"/>'
     + '<g transform="translate(158,60)">'
     + '<circle r="27" fill="rgba(255,255,255,.95)"/>'
-    + '<circle r="21" fill="none" stroke="' + c1 + '" stroke-width="1.6" opacity=".5"/>'
-    + '<circle r="14" fill="none" stroke="' + c1 + '" stroke-width="1.3" opacity=".35"/>'
-    + '<circle r="5" fill="' + c1 + '" opacity=".5"/></g>'
-    + '<path d="M146 44c4-11 13-17 24-17-1 11-8 19-24 17z" fill="' + c1 + '" opacity=".9"/>'
-    + '<path d="M132 52c-9 4-15 12-15 22 10-1 17-8 15-22z" fill="' + c1 + '" opacity=".75"/>'
-    + '<path d="M180 52c9 4 15 12 15 22-10-1-17-8-15-22z" fill="' + c1 + '" opacity=".75"/>'
-    + '</svg>';
+    + '<circle r="21" fill="none" stroke="' + c1 + '" stroke-width="1.6" opacity=".5">'
+    + '<animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="' + p1s + 's" repeatCount="indefinite"/></circle>'
+    + '<circle r="14" fill="none" stroke="' + c1 + '" stroke-width="1.3" opacity=".35">'
+    + '<animateTransform attributeName="transform" type="rotate" from="360" to="0" dur="' + p2s + 's" repeatCount="indefinite"/></circle>'
+    + '<circle r="5" fill="' + c1 + '" opacity=".5"><animate attributeName="r" values="5;7;5" dur="2s" repeatCount="indefinite"/></circle></g>'
+    + '<path d="M146 44c4-11 13-17 24-17-1 11-8 19-24 17z" fill="' + c1 + '" opacity=".9">'
+    + '<animateTransform attributeName="transform" type="translate" values="0,0;2,-4;0,0" dur="3s" repeatCount="indefinite"/></path>'
+    + '<path d="M132 52c-9 4-15 12-15 22 10-1 17-8 15-22z" fill="' + c1 + '" opacity=".75">'
+    + '<animateTransform attributeName="transform" type="translate" values="0,0;-2,-3;0,0" dur="3.5s" repeatCount="indefinite"/></path>'
+    + '<path d="M180 52c9 4 15 12 15 22-10-1-17-8-15-22z" fill="' + c1 + '" opacity=".75">'
+    + '<animateTransform attributeName="transform" type="translate" values="0,0;2,-3;0,0" dur="4s" repeatCount="indefinite"/></path>'
+    + '</svg>'
+    + '<span class="food-icon" style="top:8px;left:50%;transform:translateX(-50%)">' + icons[0] + '</span>'
+    + '<span class="food-icon">' + icons[1] + '</span>'
+    + '<div class="particle" style="width:6px;height:6px;top:20%;left:15%;animation-delay:' + (idx * 0.3) + 's"></div>'
+    + '<div class="particle" style="width:4px;height:4px;top:60%;right:20%;animation-delay:' + (idx * 0.5 + 1) + 's"></div>';
 }
 async function renderDiscover() {
   const main = $("#main");
@@ -1110,9 +1174,37 @@ async function renderDiscover() {
 function renderDisFilter() {
   const host = $("#dis-filter");
   if (S_DIS.tab === "recipes") {
-    host.innerHTML = '<div class="chip-row">' + ["all", "减脂餐", "增肌餐", "维持餐"].map(c =>
-      '<span class="chip' + (S_DIS.cat === c ? " active" : "") + '" data-cat="' + c + '">' + (c === "all" ? t("dis.all") : c) + "</span>").join("") + "</div>";
+    const cats = ["all", "减脂餐", "增肌餐", "维持餐"];
+    const catRow = cats.map(c =>
+      '<span class="chip' + (S_DIS.cat === c ? " active" : "") + '" data-cat="' + c + '">' + (c === "all" ? t("dis.all") : c) + "</span>"
+    ).join("");
+    const filterRow = '<div class="filter-panel open">'
+      + '<div class="filter-group"><label>🔥 ' + (getLang()==="zh"?"热量":"Calories") + '</label>'
+      + '<span class="filter-val" id="f-cal">' + S_DIS.calMin + '-' + S_DIS.calMax + ' kcal</span>'
+      + '<input type="range" min="0" max="2000" step="50" value="' + S_DIS.calMax + '" id="f-cal-slider"></div>'
+      + '<div class="filter-group"><label>⏱ ' + (getLang()==="zh"?"时长":"Time") + '</label>'
+      + '<span class="filter-val" id="f-time">' + S_DIS.cookMax + ' ' + t("unit.min") + '</span>'
+      + '<input type="range" min="5" max="120" step="5" value="' + S_DIS.cookMax + '" id="f-time-slider"></div>'
+      + '<button class="btn btn-ghost" id="f-reset" style="font-size:11px;padding:4px 10px">↺ ' + (getLang()==="zh"?"重置":"Reset") + '</button></div>';
+    host.innerHTML = '<div class="chip-row">' + catRow + '</div>' + filterRow;
     $$("#dis-filter .chip").forEach(ch => ch.addEventListener("click", () => { S_DIS.cat = ch.getAttribute("data-cat"); renderDisFilter(); renderDisList(); }));
+    const calSlider = $("#f-cal-slider");
+    const timeSlider = $("#f-time-slider");
+    if (calSlider) calSlider.addEventListener("input", () => {
+      S_DIS.calMax = +calSlider.value;
+      $("#f-cal").textContent = S_DIS.calMin + '-' + S_DIS.calMax + ' kcal';
+      renderDisList();
+    });
+    if (timeSlider) timeSlider.addEventListener("input", () => {
+      S_DIS.cookMax = +timeSlider.value;
+      $("#f-time").textContent = S_DIS.cookMax + ' ' + t("unit.min");
+      renderDisList();
+    });
+    const resetBtn = $("#f-reset");
+    if (resetBtn) resetBtn.addEventListener("click", () => {
+      S_DIS.calMin = 0; S_DIS.calMax = 2000; S_DIS.cookMax = 120;
+      renderDisFilter(); renderDisList();
+    });
   } else host.innerHTML = "";
 }
 function renderDisList() {
@@ -1122,6 +1214,8 @@ function renderDisList() {
   if (S_DIS.tab === "recipes") {
     let items = data.recipes || [];
     if (S_DIS.cat !== "all") items = items.filter(r => r.category === S_DIS.cat);
+    if (S_DIS.calMax < 2000) items = items.filter(r => (r.calories || 0) <= S_DIS.calMax);
+    if (S_DIS.cookMax < 120) items = items.filter(r => !r.cook_time || r.cook_time <= S_DIS.cookMax);
     if (S_DIS.q) items = items.filter(r => (r.name + " " + (r.tags || []).join(" ")).toLowerCase().includes(S_DIS.q));
     if (!items.length) { list.innerHTML = '<div class="empty-note">' + t("dis.empty") + "</div>"; return; }
     list.innerHTML = '<div class="recipe-grid">' + items.map((r, i) => {
@@ -1237,6 +1331,11 @@ function renderMe() {
     + '<div class="card"><div class="card-title">' + t("me.complete") + "</div>"
     + '<div class="row"><div class="ring" style="--p:' + comp + '"><div><b>' + comp + '%</b></div></div>'
     + '<div class="small muted" style="line-height:1.6">' + t("me.completeHint") + "</div></div></div>"
+    + '<div class="card mt-1"><div class="card-title">📅 ' + (getLang()==="zh"?"本周打卡":"Weekly Check-in") + '</div>'
+    + '<div class="checkin-calendar" id="checkin-cal"></div>'
+    + '<div class="row mt-1" style="justify-content:center"><button class="btn btn-soft btn-sm" id="btn-checkin">' + (getLang()==="zh"?"✨ 今日打卡":"Check in Today") + '</button></div></div>'
+    + '<div class="card mt-1"><div class="card-title">🏆 ' + (getLang()==="zh"?"成就徽章":"Achievements") + '</div>'
+    + '<div class="badge-grid" id="badge-grid"></div></div>'
     + '<div class="card mt-1"><div class="card-title">' + t("set.account") + "</div>"
     + '<div class="view-field"><span class="lbl">' + t("me.username") + '</span><span class="val">@' + esc(S.user.username) + "</span></div>"
     + '<div class="view-field"><span class="lbl">' + t("auth.email") + '</span><span class="val">' + esc(S.user.email || "—") + "</span></div>"
@@ -1271,6 +1370,8 @@ function renderMe() {
   if (w) w.addEventListener("input", () => { $("#v-water-val").textContent = w.value + " ml"; });
   const smoke = $("#v-smoke"); if (smoke) smoke.addEventListener("click", () => smoke.classList.toggle("on"));
   const drink = $("#v-drink"); if (drink) drink.addEventListener("click", () => drink.classList.toggle("on"));
+  renderCheckinCalendar();
+  renderBadges();
   // actions
   main.querySelectorAll("[data-save]").forEach(b => b.addEventListener("click", () => saveSection(b.getAttribute("data-save"))));
   main.querySelectorAll("[data-act]").forEach(b => b.addEventListener("click", () => {
@@ -1292,6 +1393,81 @@ function renderMe() {
     inp.placeholder = t("f.placeholder.dislike");
     box.appendChild(inp);
     inp.addEventListener("keydown", e => { if (e.key === "Enter" && inp.value.trim()) { e.preventDefault(); list.push(inp.value.trim()); renderTagBox(box, list); } });
+  }
+  function renderCheckinCalendar() {
+    const cal = $("#checkin-cal");
+    if (!cal) return;
+    const checkins = (S.profile && S.profile.checkins) || [];
+    const today = new Date();
+    const dayNames = getLang() === "zh" ? ["一","二","三","四","五","六","日"] : ["M","T","W","T","F","S","S"];
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+    let html = '<div class="cal-row">';
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const ds = d.toISOString().slice(0, 10);
+      const isToday = ds === today.toISOString().slice(0, 10);
+      const checked = checkins.includes(ds);
+      html += '<div class="cal-day' + (isToday ? " today" : "") + (checked ? " checked" : "") + '">'
+        + '<div class="cal-label">' + dayNames[i] + '</div>'
+        + '<div class="cal-dot">' + (checked ? "✅" : (isToday ? "📍" : "·")) + '</div>'
+        + '<div class="cal-date">' + d.getDate() + '</div></div>';
+    }
+    html += '</div>';
+    cal.innerHTML = html;
+    const checkinBtn = $("#btn-checkin");
+    if (checkinBtn) {
+      const todayStr = today.toISOString().slice(0, 10);
+      if (checkins.includes(todayStr)) {
+        checkinBtn.textContent = getLang() === "zh" ? "✅ 今日已打卡" : "✅ Checked In";
+        checkinBtn.disabled = true;
+      }
+      checkinBtn.addEventListener("click", async () => {
+        const ds = new Date().toISOString().slice(0, 10);
+        const checkins = (S.profile && S.profile.checkins) || [];
+        if (!checkins.includes(ds)) {
+          checkins.push(ds);
+          S.profile.checkins = checkins;
+          await api("/api/me", { method: "PUT", body: { profile: S.profile } });
+          toast(getLang() === "zh" ? "打卡成功！🎉" : "Checked in! 🎉");
+          renderCheckinCalendar();
+          renderBadges();
+        }
+      });
+    }
+  }
+  function renderBadges() {
+    const grid = $("#badge-grid");
+    if (!grid) return;
+    const checkins = (S.profile && S.profile.checkins) || [];
+    const streak = calcStreak(checkins);
+    const total = checkins.length;
+    const badges = [
+      { icon: "🌱", name: getLang()==="zh"?"首次打卡":"First Check-in", desc: getLang()==="zh"?"完成第一次打卡":"Complete first check-in", unlocked: total >= 1 },
+      { icon: "🔥", name: getLang()==="zh"?"连续3天":"3-Day Streak", desc: getLang()==="zh"?"连续打卡3天":"Check in 3 days in a row", unlocked: streak >= 3 },
+      { icon: "⭐", name: getLang()==="zh"?"连续7天":"7-Day Streak", desc: getLang()==="zh"?"连续打卡一周":"Check in a full week", unlocked: streak >= 7 },
+      { icon: "💎", name: getLang()==="zh"?"坚持30天":"30-Day Master", desc: getLang()==="zh"?"累计打卡30天":"30 total check-ins", unlocked: total >= 30 },
+      { icon: "🎯", name: getLang()==="zh"?"资料完整":"Profile Pro", desc: getLang()==="zh"?"完善个人资料":"Complete your profile", unlocked: (S.profile && S.profile.basic_info && S.profile.basic_info.age && S.profile.basic_info.height_cm) },
+      { icon: "💬", name: getLang()==="zh"?"AI对话达人":"Chat Master", desc: getLang()==="zh"?"发起10次对话":"Start 10 conversations", unlocked: (S.chat && S.chat.length >= 10) },
+    ];
+    grid.innerHTML = badges.map(b => '<div class="badge-item' + (b.unlocked ? " unlocked" : "") + '">'
+      + '<div class="badge-icon">' + b.icon + '</div>'
+      + '<div class="badge-name">' + b.name + '</div></div>').join("");
+  }
+  function calcStreak(checkins) {
+    if (!checkins.length) return 0;
+    const sorted = [...checkins].sort().reverse();
+    const today = new Date().toISOString().slice(0, 10);
+    let streak = 0;
+    let cur = new Date(today);
+    for (const ds of sorted) {
+      if (ds === cur.toISOString().slice(0, 10)) {
+        streak++;
+        cur.setDate(cur.getDate() - 1);
+      } else break;
+    }
+    return streak;
   }
 }
 function collectProfileSection(sec) {

@@ -184,7 +184,7 @@ class NutriGenerator:
         return response
 
     @staticmethod
-    def _build_context(docs: List[Document], max_length: int = 3000) -> str:
+    def _build_context(docs: List[Document], max_length: int = 5000) -> str:
         if not docs:
             return "暂无相关营养参考资料。"
         parts = []

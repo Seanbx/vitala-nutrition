@@ -440,6 +440,63 @@ async def stats():
 
 
 # --------------------------------------------------------------------------
+# 智能餐食分析
+# --------------------------------------------------------------------------
+
+class AnalyzeMealRequest(BaseModel):
+    description: str = Field(..., description="食物描述，如 '一碗米饭加红烧肉和清炒西兰花'")
+
+ANALYZE_PROMPT = """你是一位专业的营养师。请根据用户描述的一餐食物，估算这餐饭的营养成分。
+
+食物描述：{description}
+
+请严格按以下 JSON 格式返回（不要加其他文字）：
+{{
+  "calories": 数字,
+  "protein": 数字,
+  "fat": 数字,
+  "carbs": 数字,
+  "fiber": 数字,
+  "vitamins": ["维生素A", "维生素C", ...],
+  "minerals": ["钙", "铁", ...],
+  "health_score": 1到10的评分,
+  "suggestion": "一句话健康建议"
+}}
+
+注意：
+- 热量单位 kcal，其他单位 g
+- health_score：1=非常不健康，10=非常健康
+- 只输出 JSON，不要加 markdown 代码块"""
+
+
+@app.post("/api/analyze-meal")
+async def analyze_meal(req: AnalyzeMealRequest):
+    if rag_service is None:
+        raise HTTPException(status_code=503, detail="服务尚未就绪")
+    try:
+        from langchain_core.prompts import ChatPromptTemplate
+        prompt = ChatPromptTemplate.from_template(ANALYZE_PROMPT)
+        chain = prompt | rag_service.generator.llm | (lambda x: x.content)
+        result = await chain.ainvoke({"description": req.description})
+        import json, re
+        result = result.strip()
+        if result.startswith("```"):
+            result = re.sub(r"^```(?:json)?\s*", "", result)
+            result = re.sub(r"\s*```$", "", result)
+        data = json.loads(result)
+        return data
+    except json.JSONDecodeError:
+        return {
+            "calories": 0, "protein": 0, "fat": 0, "carbs": 0, "fiber": 0,
+            "vitamins": [], "minerals": [], "health_score": 5,
+            "suggestion": "无法精确分析，请咨询营养师"
+        }
+    except Exception as e:
+        logger.error(f"餐食分析失败: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# --------------------------------------------------------------------------
 # 发现页内容目录
 # --------------------------------------------------------------------------
 

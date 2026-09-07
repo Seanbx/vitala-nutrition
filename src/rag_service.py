@@ -270,6 +270,7 @@ class NutriRAGService:
 
         if self.generator:
             try:
+                yield "🤔 正在思考中...\n\n"
                 _buf = []
                 for chunk in self.generator.generate_answer_stream(
                     query, docs, chat_history, profile_context=summary
@@ -279,10 +280,30 @@ class NutriRAGService:
                 full_ans = "".join(_buf)
                 prev_ans = self._prev_assistant(chat_history)
                 if self._looks_corrupted(full_ans) or self._is_echo(full_ans, prev_ans):
-                    logger.warning("流式结果异常/复读，回退到检索回答")
-                    answer = self._build_fallback_answer(query, docs)
-                    for piece in self._chunk_text(answer, size=12):
-                        yield piece
+                    logger.warning("流式结果异常/复读，重试一次")
+                    _buf2 = []
+                    for chunk in self.generator.generate_answer_stream(
+                        query, docs, chat_history, profile_context=summary
+                    ):
+                        _buf2.append(chunk)
+                    retry_ans = "".join(_buf2)
+                    if not self._looks_corrupted(retry_ans) and not self._is_echo(retry_ans, prev_ans):
+                        answer = self._clean_output(retry_ans)
+                        yield "\r" + " " * 20 + "\r"
+                        for piece in self._chunk_text(answer, size=12):
+                            yield piece
+                    else:
+                        logger.warning("重试仍异常，回退到检索回答")
+                        answer = self._build_fallback_answer(query, docs)
+                        yield "\r" + " " * 20 + "\r"
+                        for piece in self._chunk_text(answer, size=12):
+                            yield piece
+                else:
+                    cleaned = self._clean_output(full_ans)
+                    if cleaned != full_ans:
+                        yield "\r" + " " * 20 + "\r"
+                        for piece in self._chunk_text(cleaned, size=12):
+                            yield piece
                 yield self._src_marker(docs)
                 return
             except Exception as e:
@@ -321,7 +342,7 @@ class NutriRAGService:
 
     @staticmethod
     def _looks_corrupted(text: str) -> bool:
-        """检测 LLM 输出是否退化/乱码（出现替换符，或中英文之间大量孤立 D 等）"""
+        """检测 LLM 输出是否退化/乱码"""
         if not text:
             return False
         if "\ufffd" in text:
@@ -330,10 +351,29 @@ class NutriRAGService:
         dcount = sum(1 for ch in text if ch == "D")
         if cjk > 30 and dcount > cjk * 0.2:
             return True
-        # 大量重复单字（模型陷入复读）
         import re as _re
         m = _re.search(r"([\u4e00-\u9fff])\1{4,}", text)
-        return bool(m)
+        if m:
+            return True
+        ctrl_chars = sum(1 for ch in text if ord(ch) < 32 and ch not in "\n\r\t")
+        if ctrl_chars > 5:
+            return True
+        caps_run = _re.findall(r"[A-Z]{8,}", text)
+        if caps_run:
+            return True
+        return False
+
+    @staticmethod
+    def _clean_output(text: str) -> str:
+        """清理 LLM 输出中的乱码和异常字符"""
+        if not text:
+            return text
+        import re as _re
+        text = text.replace("\ufffd", "")
+        text = _re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", "", text)
+        text = _re.sub(r"\n{4,}", "\n\n\n", text)
+        text = _re.sub(r"(.)\1{6,}", r"\1\1\1", text)
+        return text.strip()
 
     @staticmethod
     def _src_marker(docs: List[Document]) -> str:
@@ -418,9 +458,9 @@ class NutriRAGService:
         scored = [(cls._doc_relevance(query, d), i, d) for i, d in enumerate(docs)]
         relevant = [d for s, i, d in scored if s >= 2]
         if relevant:
-            return relevant[:5]
+            return relevant[:10]
         # 完全没有强相关时，保底给少量候选
-        return docs[:3]
+        return docs[:5]
 
     @staticmethod
     def _doc_snippet(content: str, limit: int = 120) -> str:
