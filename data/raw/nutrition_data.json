@@ -1,0 +1,241 @@
+{
+  "nutrition_data": {
+    "food_composition": [
+      {
+        "food_id": "food_001",
+        "name": "鸡胸肉",
+        "category": "肉类",
+        "calories": 165,
+        "protein": 31.0,
+        "fat": 3.6,
+        "carbs": 0,
+        "fiber": 0,
+        "serving_size": 100,
+        "unit": "g",
+        "allergens": [],
+        "tags": ["高蛋白", "低脂", "减脂", "增肌"]
+      },
+      {
+        "food_id": "food_002",
+        "name": "三文鱼",
+        "category": "鱼类",
+        "calories": 208,
+        "protein": 20.4,
+        "fat": 13.4,
+        "carbs": 0,
+        "fiber": 0,
+        "serving_size": 100,
+        "unit": "g",
+        "allergens": ["鱼类"],
+        "tags": ["高蛋白", "Omega-3", "健康脂肪"]
+      },
+      {
+        "food_id": "food_003",
+        "name": "牛腱肉",
+        "category": "肉类",
+        "calories": 106,
+        "protein": 20.2,
+        "fat": 2.0,
+        "carbs": 0,
+        "fiber": 0,
+        "serving_size": 100,
+        "unit": "g",
+        "allergens": [],
+        "tags": ["高蛋白", "低脂", "铁", "增肌"]
+      },
+      {
+        "food_id": "food_004",
+        "name": "虾仁",
+        "category": "海鲜",
+        "calories": 99,
+        "protein": 24.0,
+        "fat": 0.3,
+        "carbs": 0.2,
+        "fiber": 0,
+        "serving_size": 100,
+        "unit": "g",
+        "allergens": ["海鲜"],
+        "tags": ["高蛋白", "低脂", "低卡"]
+      },
+      {
+        "food_id": "food_005",
+        "name": "鸡蛋",
+        "category": "蛋类",
+        "calories": 155,
+        "protein": 13.0,
+        "fat": 11.0,
+        "carbs": 1.1,
+        "fiber": 0,
+        "serving_size": 100,
+        "unit": "g",
+        "allergens": ["鸡蛋"],
+        "tags": ["高蛋白", "全能营养"]
+      },
+      {
+        "food_id": "food_006",
+        "name": "糙米饭",
+        "category": "主食",
+        "calories": 111,
+        "protein": 2.6,
+        "fat": 0.9,
+        "carbs": 23.0,
+        "fiber": 1.8,
+        "serving_size": 100,
+        "unit": "g",
+        "allergens": [],
+        "tags": ["低GI", "高纤维", "减脂"]
+      },
+      {
+        "food_id": "food_007",
+        "name": "藜麦",
+        "category": "主食",
+        "calories": 120,
+        "protein": 4.4,
+        "fat": 1.9,
+        "carbs": 21.3,
+        "fiber": 2.8,
+        "serving_size": 100,
+        "unit": "g",
+        "allergens": [],
+        "tags": ["高蛋白", "低GI", "超级食物"]
+      },
+      {
+        "food_id": "food_008",
+        "name": "燕麦",
+        "category": "主食",
+        "calories": 68,
+        "protein": 2.4,
+        "fat": 1.4,
+        "carbs": 12.0,
+        "fiber": 1.7,
+        "serving_size": 100,
+        "unit": "g",
+        "allergens": ["麸质"],
+        "tags": ["高纤维", "低GI", "早餐"]
+      },
+      {
+        "food_id": "food_009",
+        "name": "西兰花",
+        "category": "蔬菜",
+        "calories": 34,
+        "protein": 2.8,
+        "fat": 0.4,
+        "carbs": 6.6,
+        "fiber": 2.6,
+        "serving_size": 100,
+        "unit": "g",
+        "allergens": [],
+        "tags": ["低卡", "高纤维", "抗氧化"]
+      },
+      {
+        "food_id": "food_010",
+        "name": "番茄",
+        "category": "蔬菜",
+        "calories": 18,
+        "protein": 0.9,
+        "fat": 0.2,
+        "carbs": 3.9,
+        "fiber": 1.2,
+        "serving_size": 100,
+        "unit": "g",
+        "allergens": [],
+        "tags": ["低卡", "抗氧化", "维生素C"]
+      },
+      {
+        "food_id": "food_011",
+        "name": "魔芋丝",
+        "category": "蔬菜",
+        "calories": 5,
+        "protein": 0.1,
+        "fat": 0,
+        "carbs": 1.1,
+        "fiber": 2.2,
+        "serving_size": 100,
+        "unit": "g",
+        "allergens": [],
+        "tags": ["极低卡", "高纤维", "减脂神器"]
+      },
+      {
+        "food_id": "food_012",
+        "name": "无糖希腊酸奶",
+        "category": "乳制品",
+        "calories": 59,
+        "protein": 10.0,
+        "fat": 0.7,
+        "carbs": 3.6,
+        "fiber": 0,
+        "serving_size": 100,
+        "unit": "g",
+        "allergens": ["乳制品"],
+        "tags": ["高蛋白", "益生菌", "早餐"]
+      },
+      {
+        "food_id": "food_013",
+        "name": "乳清蛋白粉",
+        "category": "补剂",
+        "calories": 120,
+        "protein": 25.0,
+        "fat": 1.5,
+        "carbs": 3.0,
+        "fiber": 0,
+        "serving_size": 30,
+        "unit": "g",
+        "allergens": ["乳制品"],
+        "tags": ["高蛋白", "训练后", "增肌"]
+      }
+    ],
+    "meal_templates": [
+      {
+        "template_id": "template_001",
+        "name": "减脂早餐模板",
+        "target_calories": 350,
+        "target_protein": 25,
+        "target_fat": 12,
+        "target_carbs": 35,
+        "food_groups": [
+          {"group": "优质蛋白", "foods": ["鸡蛋", "希腊酸奶", "蛋白粉"], "amount": "20-30g蛋白"},
+          {"group": "复合碳水", "foods": ["燕麦", "全麦面包", "红薯"], "amount": "30-40g碳水"},
+          {"group": "健康脂肪", "foods": ["坚果", "牛油果", "橄榄油"], "amount": "10-15g脂肪"},
+          {"group": "蔬菜水果", "foods": ["蓝莓", "香蕉", "番茄"], "amount": "适量"}
+        ]
+      },
+      {
+        "template_id": "template_002",
+        "name": "增肌午餐模板",
+        "target_calories": 700,
+        "target_protein": 45,
+        "target_fat": 20,
+        "target_carbs": 75,
+        "food_groups": [
+          {"group": "优质蛋白", "foods": ["鸡胸肉", "牛肉", "鱼肉", "豆腐"], "amount": "40-50g蛋白"},
+          {"group": "复合碳水", "foods": ["糙米", "藜麦", "意面"], "amount": "70-80g碳水"},
+          {"group": "蔬菜", "foods": ["西兰花", "芦笋", "菠菜"], "amount": "200g"},
+          {"group": "健康脂肪", "foods": ["橄榄油", "牛油果"], "amount": "15-20g脂肪"}
+        ]
+      }
+    ],
+    "calorie_reference": {
+      "bmr_formula": {
+        "male": "10 × 体重kg + 6.25 × 身高cm - 5 × 年龄 + 5",
+        "female": "10 × 体重kg + 6.25 × 身高cm - 5 × 年龄 - 161"
+      },
+      "activity_coefficients": [
+        {"level": "sedentary", "coefficient": 1.2, "description": "久坐（几乎不运动）"},
+        {"level": "lightly_active", "coefficient": 1.375, "description": "轻度活动（每周1-3次运动）"},
+        {"level": "moderately_active", "coefficient": 1.462, "description": "中度活动（每周3-5次运动）"},
+        {"level": "very_active", "coefficient": 1.55, "description": "高强度（每周6-7次运动）"},
+        {"level": "extremely_active", "coefficient": 1.725, "description": "极高强度（每天高强度运动）"}
+      ],
+      "goal_adjustments": [
+        {"goal": "lose_fat", "adjustment": 0.85, "description": "减脂期：TDEE × 0.85（15%热量缺口）"},
+        {"goal": "gain_muscle", "adjustment": 1.1, "description": "增肌期：TDEE × 1.1（10%热量盈余）"},
+        {"goal": "maintain", "adjustment": 1.0, "description": "维持期：TDEE"}
+      ],
+      "protein_recommendations": [
+        {"goal": "lose_fat", "range": "1.6-2.0g/kg体重", "description": "减脂期蛋白质"},
+        {"goal": "gain_muscle", "range": "1.8-2.2g/kg体重", "description": "增肌期蛋白质"},
+        {"goal": "maintain", "range": "1.2-1.5g/kg体重", "description": "维持期蛋白质"}
+      ]
+    }
+  }
+}

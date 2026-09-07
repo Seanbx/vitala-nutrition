@@ -1,0 +1,10 @@
+venv/
+nutri_env/
+__pycache__/
+*.pyc
+.env
+.git/
+data/app.db*
+preview/
+老师给的文件/
+*.bat

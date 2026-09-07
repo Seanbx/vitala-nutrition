@@ -1,0 +1,34 @@
+# Virtual environments
+venv/
+nutri_env/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment secrets
+.env
+
+# Database (auto-created on cloud)
+data/app.db*
+
+# Vector DB (rebuilt on cloud)
+chroma_db/
+
+# Teacher reference files
+老师给的文件/
+
+# Local scripts
+*.bat
+preview/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

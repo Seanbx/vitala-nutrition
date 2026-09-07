@@ -1,0 +1,268 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "fat_loss_001",
+      "name": "柠檬鸡胸肉",
+      "category": "减脂餐",
+      "meal_type": "午餐",
+      "cuisine": "中式",
+      "difficulty": "简单",
+      "cook_time": 25,
+      "calories": 189,
+      "protein": 31.2,
+      "fat": 5.8,
+      "carbs": 2.1,
+      "fiber": 0.3,
+      "ingredients": [
+        {"name": "鸡胸肉", "amount": 150, "unit": "g"},
+        {"name": "柠檬", "amount": 1, "unit": "个"},
+        {"name": "蒜末", "amount": 5, "unit": "g"},
+        {"name": "生抽", "amount": 10, "unit": "ml"},
+        {"name": "料酒", "amount": 5, "unit": "ml"},
+        {"name": "橄榄油", "amount": 5, "unit": "ml"}
+      ],
+      "allergens": [],
+      "suitable_for": ["减脂", "高蛋白", "低脂", "低卡"],
+      "tags": ["高蛋白", "低脂", "低卡", "快手菜"],
+      "steps": [
+        "鸡胸肉切薄片，用蒜末、生抽、料酒腌制20分钟",
+        "柠檬切片，铺在空气炸锅底部",
+        "放入腌制好的鸡胸肉，180度烤8分钟",
+        "翻面刷少许橄榄油，再烤10分钟",
+        "出锅撒少许辣椒粉和欧芹碎"
+      ],
+      "source": "小红书健身餐",
+      "update_time": "2024-01-15"
+    },
+    {
+      "recipe_id": "fat_loss_002",
+      "name": "番茄龙利鱼豆腐汤",
+      "category": "减脂餐",
+      "meal_type": "晚餐",
+      "cuisine": "中式",
+      "difficulty": "简单",
+      "cook_time": 20,
+      "calories": 156,
+      "protein": 28.5,
+      "fat": 3.2,
+      "carbs": 8.6,
+      "fiber": 2.1,
+      "ingredients": [
+        {"name": "龙利鱼", "amount": 150, "unit": "g"},
+        {"name": "嫩豆腐", "amount": 100, "unit": "g"},
+        {"name": "番茄", "amount": 200, "unit": "g"},
+        {"name": "金针菇", "amount": 50, "unit": "g"},
+        {"name": "葱姜", "amount": 5, "unit": "g"},
+        {"name": "盐", "amount": 2, "unit": "g"}
+      ],
+      "allergens": ["大豆"],
+      "suitable_for": ["减脂", "高蛋白", "低脂", "低卡"],
+      "tags": ["高蛋白", "低脂", "低卡", "汤品"],
+      "steps": [
+        "番茄切块，龙利鱼切片，豆腐切小块",
+        "锅中放少许油，炒香葱姜，加入番茄炒出汁",
+        "加入适量清水煮沸，放入金针菇",
+        "水开后放入龙利鱼和豆腐",
+        "煮3-5分钟，加盐调味即可"
+      ],
+      "source": "下厨房",
+      "update_time": "2024-01-15"
+    },
+    {
+      "recipe_id": "fat_loss_003",
+      "name": "希腊酸奶碗",
+      "category": "减脂餐",
+      "meal_type": "早餐",
+      "cuisine": "西式",
+      "difficulty": "简单",
+      "cook_time": 5,
+      "calories": 185,
+      "protein": 18.2,
+      "fat": 6.5,
+      "carbs": 15.8,
+      "fiber": 3.2,
+      "ingredients": [
+        {"name": "无糖希腊酸奶", "amount": 150, "unit": "g"},
+        {"name": "蓝莓", "amount": 30, "unit": "g"},
+        {"name": "奇亚籽", "amount": 10, "unit": "g"},
+        {"name": "杏仁碎", "amount": 10, "unit": "g"},
+        {"name": "蜂蜜", "amount": 5, "unit": "ml"}
+      ],
+      "allergens": ["乳制品", "坚果"],
+      "suitable_for": ["减脂", "高蛋白", "快手早餐"],
+      "tags": ["高蛋白", "快手", "早餐"],
+      "steps": [
+        "将希腊酸奶倒入碗中",
+        "撒上奇亚籽，静置5分钟",
+        "加入蓝莓和杏仁碎",
+        "淋上少许蜂蜜即可"
+      ],
+      "source": "健身社区",
+      "update_time": "2024-01-15"
+    },
+    {
+      "recipe_id": "fat_loss_004",
+      "name": "黑椒牛肉糙米饭",
+      "category": "减脂餐",
+      "meal_type": "午餐",
+      "cuisine": "中式",
+      "difficulty": "中等",
+      "cook_time": 35,
+      "calories": 385,
+      "protein": 32.5,
+      "fat": 8.6,
+      "carbs": 45.2,
+      "fiber": 4.8,
+      "ingredients": [
+        {"name": "牛腱肉", "amount": 120, "unit": "g"},
+        {"name": "糙米饭", "amount": 150, "unit": "g"},
+        {"name": "西兰花", "amount": 100, "unit": "g"},
+        {"name": "彩椒", "amount": 50, "unit": "g"},
+        {"name": "黑胡椒", "amount": 2, "unit": "g"},
+        {"name": "生抽", "amount": 10, "unit": "ml"}
+      ],
+      "allergens": [],
+      "suitable_for": ["减脂", "增肌", "高蛋白"],
+      "tags": ["高蛋白", "低GI", "增肌"],
+      "steps": [
+        "牛腱肉切条，用黑胡椒、生抽腌制15分钟",
+        "糙米饭提前煮熟",
+        "西兰花焯水，彩椒切丝",
+        "锅中放少许油，煎熟牛肉",
+        "摆盘，搭配糙米饭和蔬菜"
+      ],
+      "source": "下厨房",
+      "update_time": "2024-01-15"
+    },
+    {
+      "recipe_id": "fat_loss_005",
+      "name": "酸辣柠檬虾仁魔芋丝",
+      "category": "减脂餐",
+      "meal_type": "午餐",
+      "cuisine": "泰式",
+      "difficulty": "简单",
+      "cook_time": 15,
+      "calories": 125,
+      "protein": 22.8,
+      "fat": 2.1,
+      "carbs": 4.5,
+      "fiber": 2.8,
+      "ingredients": [
+        {"name": "虾仁", "amount": 150, "unit": "g"},
+        {"name": "魔芋丝", "amount": 200, "unit": "g"},
+        {"name": "黄瓜", "amount": 100, "unit": "g"},
+        {"name": "柠檬", "amount": 1, "unit": "个"},
+        {"name": "小米辣", "amount": 2, "unit": "个"},
+        {"name": "鱼露", "amount": 5, "unit": "ml"}
+      ],
+      "allergens": ["海鲜"],
+      "suitable_for": ["减脂", "高蛋白", "低碳水"],
+      "tags": ["高蛋白", "低碳水", "低卡", "开胃"],
+      "steps": [
+        "虾仁焯水至变色，捞出过凉水",
+        "魔芋丝焯水，黄瓜切丝",
+        "调酱汁：小米辣+蒜末+鱼露+柠檬汁",
+        "将所有食材混合，淋上酱汁",
+        "撒上白芝麻即可"
+      ],
+      "source": "小红书健身餐",
+      "update_time": "2024-01-15"
+    },
+    {
+      "recipe_id": "muscle_gain_001",
+      "name": "高蛋白燕麦粥",
+      "category": "增肌餐",
+      "meal_type": "早餐",
+      "cuisine": "西式",
+      "difficulty": "简单",
+      "cook_time": 15,
+      "calories": 520,
+      "protein": 38.5,
+      "fat": 15.2,
+      "carbs": 58.6,
+      "fiber": 6.8,
+      "ingredients": [
+        {"name": "燕麦", "amount": 80, "unit": "g"},
+        {"name": "鸡蛋", "amount": 3, "unit": "个"},
+        {"name": "牛奶", "amount": 200, "unit": "ml"},
+        {"name": "香蕉", "amount": 1, "unit": "根"},
+        {"name": "花生酱", "amount": 15, "unit": "g"}
+      ],
+      "allergens": ["乳制品", "鸡蛋", "花生"],
+      "suitable_for": ["增肌", "高蛋白", "高碳水"],
+      "tags": ["高蛋白", "高碳水", "增肌", "早餐"],
+      "steps": [
+        "燕麦加牛奶煮至浓稠",
+        "鸡蛋打散，倒入燕麦中搅拌均匀",
+        "加入切片的香蕉",
+        "淋上花生酱即可"
+      ],
+      "source": "健身社区",
+      "update_time": "2024-01-15"
+    },
+    {
+      "recipe_id": "muscle_gain_002",
+      "name": "蒜香三文鱼藜麦饭",
+      "category": "增肌餐",
+      "meal_type": "晚餐",
+      "cuisine": "西式",
+      "difficulty": "中等",
+      "cook_time": 30,
+      "calories": 650,
+      "protein": 42.8,
+      "fat": 22.5,
+      "carbs": 68.2,
+      "fiber": 8.5,
+      "ingredients": [
+        {"name": "三文鱼", "amount": 150, "unit": "g"},
+        {"name": "藜麦", "amount": 80, "unit": "g"},
+        {"name": "芦笋", "amount": 100, "unit": "g"},
+        {"name": "橄榄油", "amount": 10, "unit": "ml"},
+        {"name": "蒜末", "amount": 10, "unit": "g"},
+        {"name": "柠檬", "amount": 0.5, "unit": "个"}
+      ],
+      "allergens": ["鱼类"],
+      "suitable_for": ["增肌", "高蛋白", "健康脂肪"],
+      "tags": ["高蛋白", "Omega-3", "增肌"],
+      "steps": [
+        "藜麦提前煮熟",
+        "三文鱼用蒜末、橄榄油腌制10分钟",
+        "平底锅煎三文鱼至两面金黄",
+        "芦笋焯水，摆盘",
+        "搭配藜麦饭，挤上柠檬汁"
+      ],
+      "source": "下厨房",
+      "update_time": "2024-01-15"
+    },
+    {
+      "recipe_id": "muscle_gain_003",
+      "name": "蛋白奶昔",
+      "category": "增肌餐",
+      "meal_type": "加餐",
+      "cuisine": "西式",
+      "difficulty": "简单",
+      "cook_time": 5,
+      "calories": 380,
+      "protein": 35.2,
+      "fat": 8.5,
+      "carbs": 42.6,
+      "fiber": 3.2,
+      "ingredients": [
+        {"name": "乳清蛋白粉", "amount": 30, "unit": "g"},
+        {"name": "香蕉", "amount": 1, "unit": "根"},
+        {"name": "花生酱", "amount": 15, "unit": "g"},
+        {"name": "脱脂牛奶", "amount": 200, "unit": "ml"}
+      ],
+      "allergens": ["乳制品", "花生"],
+      "suitable_for": ["增肌", "训练后", "快速补充"],
+      "tags": ["高蛋白", "训练后", "快速"],
+      "steps": [
+        "香蕉切段，冷冻后口感更佳",
+        "所有食材放入搅拌机",
+        "搅拌至顺滑即可"
+      ],
+      "source": "健身社区",
+      "update_time": "2024-01-15"
+    }
+  ]
+}

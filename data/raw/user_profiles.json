@@ -1,0 +1,271 @@
+{
+  "user_profiles": [
+    {
+      "profile_id": "profile_001",
+      "name": "减脂期女性",
+      "description": "25岁，160cm，58kg，体脂率26%，目标减脂",
+      "gender": "female",
+      "age": 25,
+      "height": 160,
+      "weight": 58,
+      "target_weight": 52,
+      "body_fat_rate": 26,
+      "muscle_mass": 22,
+      "bmi": 22.7,
+      "fitness_goal": "fat_loss",
+      "activity_level": "lightly_active",
+      "exercise_frequency": "sometimes",
+      "exercise_type": ["yoga", "cardio"],
+      "exercise_details": {
+        "session_duration": 45,
+        "intensity": "moderate",
+        "preferred_time": "evening"
+      },
+      "health_conditions": {},
+      "food_allergies": ["shrimp"],
+      "food_intolerances": ["lactose"],
+      "dietary_pattern": "omnivore",
+      "meal_frequency": "four_meals",
+      "meal_schedule": {
+        "breakfast_time": "08:00",
+        "lunch_time": "12:00",
+        "dinner_time": "18:30",
+        "snack_times": ["15:00"]
+      },
+      "flavor_preferences": {
+        "spicy_level": "medium",
+        "sweet_level": "low",
+        "salt_level": "normal"
+      },
+      "water_intake": {
+        "daily_amount": 1500,
+        "preferred_temperature": "room",
+        "reminder_enabled": true
+      },
+      "beverage_habits": {
+        "coffee": {
+          "frequency": "daily",
+          "preferred_type": "latte",
+          "add_sugar": false,
+          "add_milk": true
+        },
+        "milk_tea": {
+          "frequency": "sometimes",
+          "preferred_sugar": "30%",
+          "preferred_topping": ["tapioca"]
+        }
+      },
+      "snack_habits": {
+        "frequency": "sometimes",
+        "preferred_types": ["fruits", "yogurt", "nuts"]
+      },
+      "sleep_schedule": {
+        "bedtime": "23:30",
+        "wake_time": "07:30",
+        "sleep_duration": 8,
+        "sleep_quality": "good"
+      },
+      "stress_level": "moderate",
+      "stress_sources": ["work"],
+      "mental_health": {
+        "mood": "calm",
+        "motivation_level": "high",
+        "body_image": "moderate"
+      },
+      "living_situation": {
+        "living_arrangement": "with_roommate",
+        "cooking_ability": "intermediate",
+        "cooking_frequency": "sometimes",
+        "kitchen_equipment": ["air_fryer", "microwave"]
+      },
+      "calorie_target": 1400,
+      "protein_target": 116,
+      "fat_target": 46,
+      "carbs_target": 140,
+      "recommended_recipes": [
+        "fat_loss_001",
+        "fat_loss_002",
+        "fat_loss_003",
+        "fat_loss_005"
+      ]
+    },
+    {
+      "profile_id": "profile_002",
+      "name": "增肌期男性",
+      "description": "28岁，180cm，75kg，体脂率15%，目标增肌",
+      "gender": "male",
+      "age": 28,
+      "height": 180,
+      "weight": 75,
+      "target_weight": 80,
+      "body_fat_rate": 15,
+      "muscle_mass": 35,
+      "bmi": 23.1,
+      "fitness_goal": "muscle_gain",
+      "activity_level": "very_active",
+      "exercise_frequency": "regular",
+      "exercise_type": ["strength_training", "cardio"],
+      "exercise_details": {
+        "session_duration": 60,
+        "intensity": "high",
+        "preferred_time": "evening"
+      },
+      "health_conditions": {},
+      "food_allergies": [],
+      "food_intolerances": [],
+      "dietary_pattern": "omnivore",
+      "meal_frequency": "five_meals",
+      "meal_schedule": {
+        "breakfast_time": "07:00",
+        "lunch_time": "12:00",
+        "dinner_time": "19:00",
+        "snack_times": ["10:00", "16:00"]
+      },
+      "flavor_preferences": {
+        "spicy_level": "medium",
+        "sweet_level": "medium",
+        "salt_level": "normal"
+      },
+      "water_intake": {
+        "daily_amount": 3000,
+        "preferred_temperature": "room",
+        "reminder_enabled": true
+      },
+      "beverage_habits": {
+        "coffee": {
+          "frequency": "daily",
+          "preferred_type": "americano",
+          "add_sugar": false,
+          "add_milk": false
+        },
+        "milk_tea": {
+          "frequency": "rarely",
+          "preferred_sugar": "50%",
+          "preferred_topping": []
+        }
+      },
+      "snack_habits": {
+        "frequency": "daily",
+        "preferred_types": ["nuts", "protein_bar", "banana"]
+      },
+      "sleep_schedule": {
+        "bedtime": "23:00",
+        "wake_time": "06:30",
+        "sleep_duration": 7.5,
+        "sleep_quality": "good"
+      },
+      "stress_level": "low",
+      "stress_sources": [],
+      "mental_health": {
+        "mood": "energetic",
+        "motivation_level": "high",
+        "body_image": "satisfied"
+      },
+      "living_situation": {
+        "living_arrangement": "with_partner",
+        "cooking_ability": "basic",
+        "cooking_frequency": "sometimes",
+        "kitchen_equipment": ["oven", "air_fryer"]
+      },
+      "calorie_target": 2800,
+      "protein_target": 165,
+      "fat_target": 75,
+      "carbs_target": 340,
+      "recommended_recipes": [
+        "muscle_gain_001",
+        "muscle_gain_002",
+        "muscle_gain_003",
+        "fat_loss_004"
+      ]
+    },
+    {
+      "profile_id": "profile_003",
+      "name": "健康维持期中年",
+      "description": "35岁，175cm，70kg，目标维持健康",
+      "gender": "male",
+      "age": 35,
+      "height": 175,
+      "weight": 70,
+      "target_weight": 70,
+      "body_fat_rate": 18,
+      "muscle_mass": 32,
+      "bmi": 22.9,
+      "fitness_goal": "maintain",
+      "activity_level": "moderately_active",
+      "exercise_frequency": "regular",
+      "exercise_type": ["running", "swimming"],
+      "exercise_details": {
+        "session_duration": 40,
+        "intensity": "moderate",
+        "preferred_time": "morning"
+      },
+      "health_conditions": {
+        "mild_hypertension": true
+      },
+      "food_allergies": [],
+      "food_intolerances": [],
+      "dietary_pattern": "omnivore",
+      "meal_frequency": "three_meals",
+      "meal_schedule": {
+        "breakfast_time": "07:30",
+        "lunch_time": "12:00",
+        "dinner_time": "18:30",
+        "snack_times": []
+      },
+      "flavor_preferences": {
+        "spicy_level": "low",
+        "sweet_level": "low",
+        "salt_level": "low"
+      },
+      "water_intake": {
+        "daily_amount": 2000,
+        "preferred_temperature": "room",
+        "reminder_enabled": false
+      },
+      "beverage_habits": {
+        "coffee": {
+          "frequency": "daily",
+          "preferred_type": "americano",
+          "add_sugar": false,
+          "add_milk": false
+        },
+        "tea": {
+          "frequency": "daily",
+          "preferred_type": "green_tea"
+        }
+      },
+      "snack_habits": {
+        "frequency": "rarely",
+        "preferred_types": ["fruits", "nuts"]
+      },
+      "sleep_schedule": {
+        "bedtime": "22:30",
+        "wake_time": "06:30",
+        "sleep_duration": 8,
+        "sleep_quality": "good"
+      },
+      "stress_level": "low",
+      "stress_sources": [],
+      "mental_health": {
+        "mood": "calm",
+        "motivation_level": "moderate",
+        "body_image": "satisfied"
+      },
+      "living_situation": {
+        "living_arrangement": "with_family",
+        "cooking_ability": "intermediate",
+        "cooking_frequency": "daily",
+        "kitchen_equipment": ["oven", "rice_cooker", "air_fryer"]
+      },
+      "calorie_target": 2200,
+      "protein_target": 105,
+      "fat_target": 70,
+      "carbs_target": 250,
+      "recommended_recipes": [
+        "fat_loss_004",
+        "muscle_gain_002",
+        "fat_loss_002"
+      ]
+    }
+  ]
+}

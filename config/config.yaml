@@ -1,0 +1,78 @@
+# 项目配置文件
+
+# 项目基本信息
+project:
+  name: "个性化智能营养助手"
+  version: "0.1.0"
+  description: "基于RAG的智能饮食推荐与健康管理系统"
+
+# 路径配置
+paths:
+  data_dir: "data"
+  raw_data_dir: "data/raw"
+  index_dir: "data/index"
+  docs_dir: "docs"
+  src_dir: "src"
+
+# 模型配置
+model:
+  embedding:
+    name: "Qwen/Qwen3-Embedding-0.6B"
+    device: "auto"  # auto / cpu / cuda
+    cache_dir: "models_cache"
+  
+  llm:
+    provider: "dashscope"  # dashscope / deepseek / openai
+    model: "qwen-plus"
+    api_key_env: "NUTRI_LLM_API_KEY"
+
+# 检索配置
+retrieval:
+  top_k: 5
+  score_threshold: 0.7
+
+# 用户画像配置
+user_profile:
+  # 默认营养目标
+  default_calorie_target: 2000
+  default_protein_ratio: 0.3  # 30%热量来自蛋白质
+  default_fat_ratio: 0.25     # 25%热量来自脂肪
+  default_carb_ratio: 0.45    # 45%热量来自碳水
+
+# 饮食记录配置
+diet_tracking:
+  # 每日热量目标范围
+  min_calories: 1200
+  max_calories: 3000
+  
+  # 营养素目标范围
+  protein_range: [1.2, 2.2]  # g/kg体重
+  fat_range: [0.8, 1.2]      # g/kg体重
+
+# 推荐配置
+recommendation:
+  # 菜谱分类
+  categories:
+    - "减脂餐"
+    - "增肌餐"
+    - "维持餐"
+    - "素食"
+    - "低碳水"
+  
+  # 餐次类型
+  meal_types:
+    - "早餐"
+    - "午餐"
+    - "晚餐"
+    - "加餐"
+
+# 服务器配置
+server:
+  host: "0.0.0.0"
+  port: 8000
+  debug: true
+
+# 日志配置
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
