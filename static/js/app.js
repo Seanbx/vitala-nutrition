@@ -746,7 +746,7 @@ function renderHome() {
     + '<span data-act="goprofile" style="cursor:pointer">' + avatarHTML((S.user && S.user.avatar) || { type: "initials" }, 48, true) + "</span></div>"
     + tip
     + '<div class="cal-hero mt-2">'
-    + '<div class="cal-card"><div class="cal-top"><span class="cal-label">' + t("home.calTarget") + "</span><span style='opacity:.9;font-size:12px'>" + (S.profile && S.profile.dietary_preferences && S.profile.dietary_preferences.goal ? optLabel("goal", S.profile.dietary_preferences.goal) : "") + "</span></div>"
+    + '<div class="cal-card"><span class="cal-glow"></span><div class="cal-top"><span class="cal-label">' + t("home.calTarget") + "</span><span style='opacity:.9;font-size:12px'>" + (S.profile && S.profile.dietary_preferences && S.profile.dietary_preferences.goal ? optLabel("goal", S.profile.dietary_preferences.goal) : "") + "</span></div>"
     + '<div class="cal-main"><span class="cal-num">' + remain + '</span><span class="cal-unit">kcal</span></div>'
     + '<div class="cal-foot">' + t("home.remain") + " · " + t("home.consumed") + " " + Math.round(tr.totals.cal) + " / " + cal + " kcal</div>"
     + "</div>"
@@ -1020,6 +1020,7 @@ async function streamChat(text) {
   if (sources && sources.length) {
     srcHtml = '<div class="src-row">' + sources.slice(0, 4).map(s => '<span class="src-chip">📄 ' + esc(s.title) + "</span>").join("") + "</div>";
   }
+  bbl.className = "bbl markdown";
   bbl.innerHTML = md2html(answer) + srcHtml;
   const bot = { role: "bot", content: answer, sources: sources || [] };
   S.chat.push(bot);
@@ -1029,6 +1030,31 @@ async function streamChat(text) {
 
 /* ---------------- discover ---------------- */
 const S_DIS = { tab: "recipes", cat: "all", q: "" };
+
+function recipeCover(r, idx) {
+  const pal = {
+    "减脂餐": ["#8FAD92", "#D3E0C9", "#4E7A5A"],
+    "增肌餐": ["#C89374", "#EFDCC6", "#9A5B3E"],
+    "维持餐": ["#93A7BE", "#E0E7EE", "#4E6A86"]
+  }[r.category] || ["#93A7BE", "#E0E7EE", "#4E6A86"];
+  const a = pal[0], b = pal[1], c1 = pal[2];
+  const gid = "rg" + (Math.abs(idx) % 9000);
+  return '<svg class="rc" viewBox="0 0 320 118" preserveAspectRatio="xMidYMid slice" aria-hidden="true">'
+    + '<defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="1" y2="1">'
+    + '<stop offset="0" stop-color="' + a + '"/><stop offset="1" stop-color="' + b + '"/></linearGradient></defs>'
+    + '<rect width="320" height="118" fill="url(#' + gid + ')"/>'
+    + '<circle cx="276" cy="12" r="52" fill="rgba(255,255,255,.16)"/>'
+    + '<circle cx="30" cy="112" r="40" fill="rgba(255,255,255,.12)"/>'
+    + '<g transform="translate(158,60)">'
+    + '<circle r="27" fill="rgba(255,255,255,.95)"/>'
+    + '<circle r="21" fill="none" stroke="' + c1 + '" stroke-width="1.6" opacity=".5"/>'
+    + '<circle r="14" fill="none" stroke="' + c1 + '" stroke-width="1.3" opacity=".35"/>'
+    + '<circle r="5" fill="' + c1 + '" opacity=".5"/></g>'
+    + '<path d="M146 44c4-11 13-17 24-17-1 11-8 19-24 17z" fill="' + c1 + '" opacity=".9"/>'
+    + '<path d="M132 52c-9 4-15 12-15 22 10-1 17-8 15-22z" fill="' + c1 + '" opacity=".75"/>'
+    + '<path d="M180 52c9 4 15 12 15 22-10-1-17-8-15-22z" fill="' + c1 + '" opacity=".75"/>'
+    + '</svg>';
+}
 async function renderDiscover() {
   const main = $("#main");
   main.innerHTML = '<div class="page-in">'
@@ -1066,11 +1092,10 @@ function renderDisList() {
     if (S_DIS.cat !== "all") items = items.filter(r => r.category === S_DIS.cat);
     if (S_DIS.q) items = items.filter(r => (r.name + " " + (r.tags || []).join(" ")).toLowerCase().includes(S_DIS.q));
     if (!items.length) { list.innerHTML = '<div class="empty-note">' + t("dis.empty") + "</div>"; return; }
-    list.innerHTML = '<div class="recipe-grid">' + items.map(r => {
-      const ico = r.category === "减脂餐" ? "🥗" : r.category === "增肌餐" ? "🍗" : "🥘";
+    list.innerHTML = '<div class="recipe-grid">' + items.map((r, i) => {
       const tags = (r.tags || []).slice(0, 2).map(tg => '<span class="pill">' + esc(tg) + "</span>").join("");
       return '<div class="recipe-card" data-id="' + esc(r.id) + '">'
-        + '<div class="recipe-thumb">' + ico + "</div>"
+        + '<div class="recipe-thumb">' + recipeCover(r, i) + "</div>"
         + '<div class="recipe-body"><h4>' + esc(r.name) + "</h4>"
         + '<div class="recipe-meta"><span class="pill cat">' + esc(r.category) + "</span>" + (r.meal_type ? '<span class="pill">' + mealTypeLabel(mealKey(r.meal_type)) + "</span>" : "") + tags + "</div>"
         + '<div class="recipe-nums"><span><b>' + (r.calories || 0) + "</b> kcal</span>" + (r.cook_time ? '<span>⏱ ' + r.cook_time + ' ' + t("unit.min") + "</span>" : "") + "</div>"

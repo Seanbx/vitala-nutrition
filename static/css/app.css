@@ -618,3 +618,78 @@ html[data-theme="dark"] .mb-c { background: #D3B176; }
 .splash-logo { background: linear-gradient(135deg,#5F7A68,#86A08D); color:#fff; }
 .splash-logo svg { display:block; }
 .auth-brand .mark svg, .onb-brand .mark svg, .auth-mobile-logo svg { display:block; }
+/* =============================================================
+   v3 — 质感 & 动效细节（去“土”、加“科技感/设计感”）
+   ============================================================= */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(1100px 560px at 88% -12%, color-mix(in srgb, var(--brand) 7%, transparent), transparent 62%),
+    radial-gradient(900px 520px at -12% 112%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 58%);
+}
+.page, .topbar, .main { position: relative; z-index: 1; }
+.topbar { background: var(--topbar-bg); backdrop-filter: blur(18px) saturate(1.25); -webkit-backdrop-filter: blur(18px) saturate(1.25); }
+
+/* 顶部导航：选中项发光下划线 */
+.topnav button { position: relative; }
+.topnav button.active::after {
+  content: ""; position: absolute; left: 15px; right: 15px; bottom: 5px; height: 2px;
+  border-radius: 2px; background: var(--brand);
+  animation: growX .25s cubic-bezier(.2,.9,.3,1.2);
+}
+@keyframes growX { from { transform: scaleX(.2); opacity: 0; } }
+.bottomnav button.active .ico { color: var(--brand); transform: translateY(-1px) scale(1.12); transition: transform .2s ease; }
+
+/* 卡片质感 & 悬停 */
+.card, .stat-mini, .macro-card, .form-section, .settings-card, .know-card, .recipe-card, .theme-card, .lang-card {
+  transition: transform .18s ease, box-shadow .22s ease, border-color .22s ease;
+}
+@media (hover: hover) {
+  .stat-mini:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--line-2); }
+  .know-card:hover, .theme-card:hover, .lang-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+}
+.chip, .qa-btn, .pill, .source-chip { transition: all .16s ease; }
+button:focus-visible, .chip:focus-visible, a:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* 卡片入场：依次浮现 */
+.page-in > * { animation: fadeUp .45s ease both; }
+.page-in > *:nth-child(2) { animation-delay: .04s; }
+.page-in > *:nth-child(3) { animation-delay: .08s; }
+.page-in > *:nth-child(4) { animation-delay: .12s; }
+.page-in > *:nth-child(5) { animation-delay: .16s; }
+
+/* 菜谱封面：设计感 SVG 插画 */
+.recipe-thumb { position: relative; height: 112px; overflow: hidden; border-bottom: 1px solid var(--line); background: var(--gradient-soft); }
+.recipe-thumb svg.rc { display: block; width: 100%; height: 100%; }
+.recipe-thumb::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.35) 50%, transparent 60%);
+  transform: translateX(-120%); transition: transform .7s ease; pointer-events: none;
+}
+.recipe-card:hover .recipe-thumb::after { transform: translateX(120%); }
+.recipe-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--line-2); }
+
+/* 首页热量卡：微光流动 */
+.cal-card { overflow: hidden; }
+.cal-card .cal-glow {
+  position: absolute; width: 130%; height: 60px; top: -30px; left: -20%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.16), transparent);
+  transform: rotate(8deg); animation: calSheen 7s ease-in-out infinite; pointer-events: none;
+}
+@keyframes calSheen { 0%, 60%, 100% { left: -130%; } 30% { left: 120%; } }
+.cal-card .cal-num { text-shadow: 0 2px 12px rgba(0,0,0,.08); }
+
+/* 数字/进度：柔和呼吸 */
+.water-ring, .ring { transition: --p .6s ease; }
+
+/* 对话流式光标 */
+.md-live::after { content: "▍"; margin-left: 2px; color: var(--brand); animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* 空状态更精致 */
+.chat-empty .big, .empty-note { opacity: .9; }
+.chat-empty h2 { letter-spacing: -.3px; }
+
+/* 头像选择/emoji 统一圆角质感 */
+.avatar-preset { box-shadow: var(--shadow-sm); }
+.avatar-preset.active { box-shadow: 0 0 0 3px var(--brand-soft), 0 6px 14px -6px var(--brand); }

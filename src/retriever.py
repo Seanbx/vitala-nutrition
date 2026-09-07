@@ -82,8 +82,23 @@ class NutriRetriever:
         fused = self._rrf_fusion(vector_docs, bm25_docs)
         if not fused and bm25_docs:
             # 向量检索不可用时，直接返回 BM25 结果
-            return bm25_docs[:k]
-        return fused[:k]
+            candidates = bm25_docs
+        else:
+            candidates = fused
+        # 按文档标题去重：长文档分块多会霸榜，改为每篇文档只保留最相关的一块
+        seen = set()
+        result = []
+        for doc in candidates:
+            key = doc.metadata.get("title") or doc.metadata.get("source", "")
+            if key in seen:
+                continue
+            seen.add(key)
+            result.append(doc)
+            if len(result) >= k:
+                break
+        if not result and candidates:
+            result = candidates[:k]
+        return result
 
     def metadata_filter_search(
         self, query: str, filters: Dict[str, Any], top_k: int = None

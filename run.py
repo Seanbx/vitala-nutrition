@@ -66,7 +66,15 @@ def find_cloudflared():
         return None
 
 
+def strip_system_proxy():
+    """清除系统代理环境变量：避免大模型/Embedding 请求被代理绕路导致极慢"""
+    for k in ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY",
+              "http_proxy", "https_proxy", "all_proxy"):
+        os.environ.pop(k, None)
+
+
 def start_server(port):
+    strip_system_proxy()
     from dotenv import load_dotenv
     load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
     import uvicorn
