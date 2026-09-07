@@ -124,7 +124,7 @@ class NutriGenerator:
                     max_tokens=self.max_tokens,
                     api_key=api_key,
                     base_url=os.getenv("LLM_BASE_URL", "https://api.siliconflow.cn/v1"),
-                    timeout=45,
+                    timeout=int(os.getenv("LLM_TIMEOUT", "60")),
                     max_retries=1,
                 )
                 self.model_name = m
