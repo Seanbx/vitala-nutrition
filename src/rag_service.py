@@ -6,6 +6,7 @@ v2：索引复用（不再每次删除重建）、向量服务不可用时自动
 """
 
 import os
+import json
 import logging
 from pathlib import Path
 from typing import List, Dict, Optional
@@ -174,7 +175,8 @@ class NutriRAGService:
         constraints = self.user_manager.extract_constraints_from_query(query)
 
         search_query = query
-        if use_rewrite and self.generator:
+        # 过短/口语化问题直接检索，跳过查询改写，减少一次 LLM 调用（更快）
+        if use_rewrite and self.generator and len(query.strip()) >= 6:
             try:
                 search_query = self.generator.query_rewrite(query, chat_history)
             except Exception:
@@ -262,6 +264,7 @@ class NutriRAGService:
                     query, docs, chat_history, profile_context=summary
                 ):
                     yield chunk
+                yield self._src_marker(docs)
                 return
             except Exception as e:
                 logger.error(f"流式生成失败: {e}，回退到检索结果")
@@ -269,11 +272,36 @@ class NutriRAGService:
         answer = self._build_fallback_answer(query, docs)
         for piece in self._chunk_text(answer, size=12):
             yield piece
+        yield self._src_marker(docs)
 
     @staticmethod
     def _chunk_text(text: str, size: int = 10):
         for i in range(0, len(text), size):
             yield text[i:i + size]
+
+    @staticmethod
+    def _src_marker(docs: List[Document]) -> str:
+        try:
+            sources = []
+            seen = set()
+            for doc in docs:
+                meta = doc.metadata
+                title = meta.get("title", "")
+                if not title:
+                    src = meta.get("source", "")
+                    title = Path(src).stem if src else "来源"
+                key = (title, meta.get("category", ""))
+                if key in seen:
+                    continue
+                seen.add(key)
+                sources.append({
+                    "title": title,
+                    "category": meta.get("category", ""),
+                    "doc_type": meta.get("doc_type", ""),
+                })
+            return "\n[[SRC]]" + json.dumps(sources, ensure_ascii=False)
+        except Exception:
+            return "\n[[SRC]][]"
 
     def _build_sources(self, docs: List[Document]) -> List[dict]:
         sources = []

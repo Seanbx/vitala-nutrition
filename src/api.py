@@ -443,16 +443,150 @@ async def stats():
 # 发现页内容目录
 # --------------------------------------------------------------------------
 
+_recipe_cache = {"sig": None, "items": None}
+
+RECIPE_CATEGORY_DIRS = ["减脂餐", "增肌餐", "维持餐"]
+
+
+def _recipe_signature():
+    sig = []
+    for cat in RECIPE_CATEGORY_DIRS:
+        d = data_dir / "recipes" / cat
+        if not d.exists():
+            continue
+        for fp in sorted(d.glob("*.md")):
+            st = fp.stat()
+            sig.append(f"{fp.stem}|{st.st_size}|{int(st.st_mtime)}")
+    return "|".join(sig)
+
+
+def _guess_meal_type(title: str, desc: str) -> str:
+    text = title + desc
+    breakfast_kw = ["早餐", "燕麦", "吐司", "三明治", "奶昔", "煎饼", "粥", "卷饼", "酸奶"]
+    if any(k in text for k in breakfast_kw):
+        return "breakfast"
+    soup_kw = ["汤", "羹"]
+    if any(k in text for k in soup_kw):
+        return "dinner"
+    return ""
+
+
+def _parse_nutrition(lines):
+    out = {}
+    mapping = {"热量": "calories", "蛋白质": "protein", "脂肪": "fat",
+               "碳水化合物": "carbs", "碳水": "carbs", "膳食纤维": "fiber"}
+    for ln in lines:
+        raw = ln.strip().lstrip("-*").strip()
+        for cn, en in mapping.items():
+            if raw.startswith(cn) and "：" in raw:
+                val = raw.split("：", 1)[1]
+                num = ""
+                for ch in val:
+                    if ch.isdigit() or ch == ".":
+                        num += ch
+                    elif num:
+                        break
+                try:
+                    out[en] = float(num)
+                except Exception:
+                    pass
+                break
+    return out
+
+
+def _parse_recipe_md(fp: Path) -> dict:
+    text = fp.read_text(encoding="utf-8")
+    title = fp.stem
+    for ln in text.splitlines():
+        if ln.startswith("# "):
+            title = ln[2:].strip()
+            break
+    desc = ""
+    nutrition = {}
+    ingredients = []
+    steps = []
+    suitable = ""
+    tips = ""
+    current = None
+    for raw in text.splitlines():
+        ln = raw.strip()
+        if not ln:
+            continue
+        if ln.startswith("## "):
+            current = ln[3:].strip()
+            continue
+        if ln.startswith("# "):
+            continue
+        if current == "食材" and (ln.startswith("-") or ln.startswith("*")):
+            item = ln.lstrip("-* ").strip()
+            m = __import__("re").match(r"(.+?)\s+([\d.]+)\s*([a-zA-Z克毫升gml个片瓣勺块根]*)", item)
+            if m:
+                ingredients.append({"name": m.group(1).strip(), "amount": float(m.group(2)), "unit": m.group(3)})
+            else:
+                ingredients.append({"name": item, "amount": 0, "unit": ""})
+        elif current == "烹饪步骤" and ln[:1].isdigit():
+            steps.append(ln.split(".", 1)[-1].strip())
+        elif current == "营养成分":
+            for _k, _v in _parse_nutrition([ln]).items():
+                nutrition[_k] = _v
+        elif current == "适合人群":
+            suitable = ln
+        elif current == "小贴士":
+            tips = ln
+        elif desc == "" and current is None and not ln.startswith("##"):
+            desc = ln
+    if not steps and not ingredients:
+        # 部分文件用纯文本段落
+        pass
+    tags = []
+    tag_map = [
+        ("高蛋白", "高蛋白"), ("低脂", "低脂"), ("低卡", "低卡"), ("高纤", "高纤"),
+        ("低碳", "低碳"), ("控糖", "控糖"), ("补铁", "补铁"), ("补钙", "补钙"),
+        ("快手", "快手菜"), ("汤", "汤品"), ("凉拌", "凉拌"), ("素食", "素食"),
+        ("早餐", "早餐"), ("增肌", "增肌餐"), ("减脂", "减脂餐"),
+    ]
+    hay = (title + desc + suitable).lower()
+    for kw, label in tag_map:
+        if kw.lower() in hay and label not in tags:
+            tags.append(label)
+    category = fp.parent.name
+    meal_type = _guess_meal_type(title, desc)
+    return {
+        "recipe_id": fp.stem,
+        "name": title,
+        "category": category,
+        "meal_type": meal_type,
+        "calories": int(nutrition.get("calories") or 0),
+        "protein": round(nutrition.get("protein") or 0, 1),
+        "fat": round(nutrition.get("fat") or 0, 1),
+        "carbs": round(nutrition.get("carbs") or 0, 1),
+        "fiber": round(nutrition.get("fiber") or 0, 1),
+        "description": desc,
+        "ingredients": ingredients,
+        "steps": steps,
+        "tags": tags,
+        "suitable_for": suitable,
+        "tips": tips,
+    }
+
+
 def _read_recipes():
-    f = data_dir / "raw" / "recipes.json"
-    if not f.exists():
-        return []
-    try:
-        data = json.loads(f.read_text(encoding="utf-8"))
-        return data.get("recipes", []) if isinstance(data, dict) else data
-    except Exception as e:
-        logger.warning(f"读取菜谱失败: {e}")
-        return []
+    sig = _recipe_signature()
+    if _recipe_cache["sig"] == sig and _recipe_cache["items"] is not None:
+        return _recipe_cache["items"]
+    items = []
+    for cat in RECIPE_CATEGORY_DIRS:
+        d = data_dir / "recipes" / cat
+        if not d.exists():
+            continue
+        for fp in sorted(d.glob("*.md")):
+            try:
+                items.append(_parse_recipe_md(fp))
+            except Exception as exc:
+                logger.warning(f"解析菜谱失败 {fp.name}: {exc}")
+    _recipe_cache["sig"] = sig
+    _recipe_cache["items"] = items
+    return items
 
 
 def _read_knowledge():
@@ -487,8 +621,9 @@ async def catalog():
             "protein": r.get("protein", 0),
             "fat": r.get("fat", 0),
             "carbs": r.get("carbs", 0),
-            "difficulty": r.get("difficulty", ""),
-            "cook_time": r.get("cook_time", 0),
+            "fiber": r.get("fiber", 0),
+            "difficulty": "",
+            "cook_time": 0,
             "tags": r.get("tags", []),
         })
     knowledge = _read_knowledge()

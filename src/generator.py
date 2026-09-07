@@ -91,13 +91,13 @@ class NutriGenerator:
 
     def __init__(
         self,
-        model_name: str = "Qwen/Qwen2.5-7B-Instruct",
+        model_name: str = None,
         temperature: float = 0.1,
-        max_tokens: int = 2048,
+        max_tokens: int = None,
     ):
-        self.model_name = model_name
+        self.model_name = model_name or os.getenv("LLM_MODEL") or "Qwen/Qwen2.5-7B-Instruct"
         self.temperature = temperature
-        self.max_tokens = max_tokens
+        self.max_tokens = max_tokens or int(os.getenv("LLM_MAX_TOKENS", "2048"))
         self.llm = None
         self._init_llm()
 

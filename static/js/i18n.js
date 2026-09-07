@@ -213,6 +213,7 @@ const I18N = {
     "chat.clear": "清空对话",
     "chat.clearConfirm": "清空当前对话记录？",
     "chat.disclaimer": "Vitala 的建议仅供参考，不能替代专业医疗诊断。如有疾病请咨询医生。",
+    "chat.greet": "你好呀！我是你的 AI 营养助手 🥗\n\n你可以这样问我：\n- 减脂期早中晚怎么吃\n- 我每天该喝多少水、吃多少蛋白质\n- 帮我推荐今天的午餐 / 晚餐\n\n直接打字告诉我就行～",
     "chat.error": "出错了，请稍后再试",
 
     "dis.title": "发现",
@@ -512,6 +513,7 @@ const I18N = {
     "chat.clear": "Clear chat",
     "chat.clearConfirm": "Clear this conversation?",
     "chat.disclaimer": "Vitala's advice is for reference only and not a substitute for professional medical care. Consult a doctor if you have a condition.",
+    "chat.greet": "Hi there! I'm your AI nutrition assistant 🥗\n\nYou can ask me things like:\n- What should I eat for fat-loss meals\n- How much water / protein do I need daily\n- Recommend today's lunch / dinner\n\nJust type away!",
     "chat.error": "Something went wrong. Try again later",
 
     "dis.title": "Discover",

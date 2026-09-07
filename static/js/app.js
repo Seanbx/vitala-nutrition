@@ -945,25 +945,88 @@ function showTyping() {
 }
 function removeTyping() { const el = $("#typing"); if (el) el.remove(); }
 function saveChat() { try { localStorage.setItem(chatKey(), JSON.stringify(S.chat.slice(-60))); } catch (e) {} }
+const GREET_RE = /^(你好|您好|嗨|哈喽|hello|hi|hey|hiya|在吗|早上好|中午好|下午好|晚上好|good\s?(morning|afternoon|evening))/i;
+const SRC_MARK = "\n[[SRC]]";
+
+function chatHistory() { return S.chat.slice(-10).map(m => ({ role: m.role, content: m.content })); }
+
 async function sendChat(text) {
   S.chat.push({ role: "user", content: text });
-  const userEl = appendBubble({ role: "user", content: text }, true);
-  showTyping();
-  try {
-    const d = await api("/api/chat", {
-      method: "POST",
-      body: { query: text, chat_history: S.chat.slice(-10).map(m => ({ role: m.role, content: m.content })), use_rewrite: true },
-    });
-    removeTyping();
-    const bot = { role: "bot", content: d.answer || "", sources: d.sources || [] };
+  appendBubble({ role: "user", content: text }, true);
+  const clean = text.trim().replace(/[!！?？。.,，~～\s]+$/, "");
+  // 问候语：不调大模型、不联网检索，直接本地秒回
+  if (clean.length <= 14 && GREET_RE.test(clean)) {
+    const bot = { role: "bot", content: t("chat.greet"), sources: [] };
+    await new Promise(r => setTimeout(r, 220));
     S.chat.push(bot);
     appendBubble(bot, true);
     saveChat();
+    return;
+  }
+  showTyping();
+  try {
+    await streamChat(text);
   } catch (e) {
     removeTyping();
-    appendBubble({ role: "bot", content: t("chat.error") + "：" + (e.detail || "") }, true);
+    try {
+      const d = await api("/api/chat", { method: "POST", body: { query: text, chat_history: chatHistory(), use_rewrite: true } });
+      const bot = { role: "bot", content: d.answer || "", sources: d.sources || [] };
+      S.chat.push(bot);
+      appendBubble(bot, true);
+      saveChat();
+    } catch (e2) {
+      appendBubble({ role: "bot", content: t("chat.error") + "：" + (e2.detail || "") }, true);
+    }
   }
 }
+
+async function streamChat(text) {
+  const headers = { "Content-Type": "application/json" };
+  if (S.token) headers["Authorization"] = "Bearer " + S.token;
+  const res = await fetch("/api/chat/stream", { method: "POST", headers, body: JSON.stringify({ query: text, chat_history: chatHistory(), use_rewrite: true }) });
+  if (!res.ok) {
+    const err = {};
+    try { const j = await res.json(); err.detail = j.detail; } catch (x) { err.detail = res.statusText; }
+    throw err;
+  }
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  removeTyping();
+  const wrap = document.createElement("div");
+  wrap.className = "bubble bot";
+  wrap.innerHTML = '<div class="av">V</div><div><div class="bbl md-live"></div></div>';
+  const scroll = $("#chat-scroll");
+  scroll.appendChild(wrap);
+  const bbl = wrap.querySelector(".md-live");
+  let buf = "";
+  let plain = "";
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    const idx = buf.indexOf(SRC_MARK);
+    plain = idx >= 0 ? buf.slice(0, idx) : buf;
+    bbl.textContent = plain;
+    scroll.scrollTop = scroll.scrollHeight;
+  }
+  let answer = buf;
+  let sources = [];
+  const idx = buf.indexOf(SRC_MARK);
+  if (idx >= 0) {
+    answer = buf.slice(0, idx);
+    try { sources = JSON.parse(buf.slice(idx + SRC_MARK.length)); } catch (x) { sources = []; }
+  }
+  let srcHtml = "";
+  if (sources && sources.length) {
+    srcHtml = '<div class="src-row">' + sources.slice(0, 4).map(s => '<span class="src-chip">📄 ' + esc(s.title) + "</span>").join("") + "</div>";
+  }
+  bbl.innerHTML = md2html(answer) + srcHtml;
+  const bot = { role: "bot", content: answer, sources: sources || [] };
+  S.chat.push(bot);
+  saveChat();
+  scroll.scrollTop = scroll.scrollHeight;
+}
+
 /* ---------------- discover ---------------- */
 const S_DIS = { tab: "recipes", cat: "all", q: "" };
 async function renderDiscover() {
@@ -1009,8 +1072,8 @@ function renderDisList() {
       return '<div class="recipe-card" data-id="' + esc(r.id) + '">'
         + '<div class="recipe-thumb">' + ico + "</div>"
         + '<div class="recipe-body"><h4>' + esc(r.name) + "</h4>"
-        + '<div class="recipe-meta"><span class="pill cat">' + esc(r.category) + "</span><span class='pill'>" + mealTypeLabel(mealKey(r.meal_type)) + "</span>" + tags + "</div>"
-        + '<div class="recipe-nums"><span><b>' + (r.calories || 0) + "</b> kcal</span><span>⏱ " + (r.cook_time || 0) + " " + t("unit.min") + "</span></div>"
+        + '<div class="recipe-meta"><span class="pill cat">' + esc(r.category) + "</span>" + (r.meal_type ? '<span class="pill">' + mealTypeLabel(mealKey(r.meal_type)) + "</span>" : "") + tags + "</div>"
+        + '<div class="recipe-nums"><span><b>' + (r.calories || 0) + "</b> kcal</span>" + (r.cook_time ? '<span>⏱ ' + r.cook_time + ' ' + t("unit.min") + "</span>" : "") + "</div>"
         + "</div></div>";
     }).join("") + "</div>";
     $$(".recipe-card", list).forEach(card => card.addEventListener("click", () => openRecipe(card.getAttribute("data-id"))));
@@ -1026,8 +1089,8 @@ function renderDisList() {
 async function openRecipe(id) {
   try {
     const r = await api("/api/catalog/recipe/" + id);
-    const m = showModal('<h3>' + esc(r.name) + '</h3><div class="row" style="gap:6px;flex-wrap:wrap">'
-      + '<span class="pill cat">' + esc(r.category) + '</span><span class="pill">' + mealTypeLabel(mealKey(r.meal_type)) + '</span><span class="pill">⏱ ' + (r.cook_time || 0) + " " + t("unit.min") + "</span></div>"
+    const m = showModal('<h3>' + esc(r.name) + '</h3>' + (r.description ? '<p class="sub">' + esc(r.description) + "</p>" : "") + '<div class="row" style="gap:6px;flex-wrap:wrap">'
+      + '<span class="pill cat">' + esc(r.category) + "</span>" + (r.meal_type ? '<span class="pill">' + mealTypeLabel(mealKey(r.meal_type)) + "</span>" : "") + (r.cook_time ? '<span class="pill">⏱ ' + r.cook_time + ' ' + t("unit.min") + "</span>" : "") + "</div>"
       + '<div class="stat-grid mt-1" style="grid-template-columns:repeat(4,1fr)">'
       + '<div class="stat-mini" style="padding:9px"><div class="v">' + (r.calories || 0) + '</div><div class="l">kcal</div></div>'
       + '<div class="stat-mini" style="padding:9px"><div class="v">' + (r.protein || 0) + '</div><div class="l">' + t("dis.protein") + "</div></div>"
