@@ -32,3 +32,9 @@ preview/
 # OS
 .DS_Store
 Thumbs.db
+
+# Local runtime artifacts
+cloudflared.exe
+*.log
+public_url.txt
+tunnel*.txt

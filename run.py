@@ -93,7 +93,7 @@ def start_tunnel(exe, port):
         print(f"  公网链接启动失败: {e}")
         return
 
-    pattern = re.compile(r"https://[a-z0-9-]+\.trycloudflare\.com")
+    pattern = re.compile(r"https://(?!api\.)[a-z0-9-]{4,}\.trycloudflare\.com")
     found = None
     try:
         for line in proc.stdout:
